@@ -72,7 +72,7 @@
 |---|---|---|---|
 | 1 | ✅ **v0.4.0 반영** — 캐릭터 일관성 계약 + 참조 뱅크(id 인용 강제·프로버넌스) | 캐릭터 스테이지 | 캐릭터 광고 품질 1순위 결정 요인. `reference_bank`+`consistency_policy`+manifest `references_used`/`consistency_check` |
 | 2 | ✅ **v0.5.0 반영** — 스테이지별 자동 자기검수 QA(`quality-reviewer`) → 승인 게이트에 증거 | 각 생성 게이트 | 승인을 이진→증거기반으로. 축별 `review`(verdict+원인층위) → manifest, 무과금 |
-| 3 | edit_plan EDL 버전드 스키마 + 재렌더 멱등성 | 후반 | 생성 재소비 없이 diff/재렌더/A-B, 비용게이트와 복리 |
+| 3 | ✅ **v0.6.0 반영** — edit_plan EDL 버전드 스키마 + 재렌더 멱등성 | 후반 | 생성 재소비 없이 diff/재렌더/A-B, 비용게이트와 복리 |
 | 4 | 콘티 계약에 stock/hybrid 숏 전략 | 콘티 | 비히어로 비용 절감, 비용게이트 서사 강화 |
 | 5 | 표준 후반 오디오(TTS+자막 타이밍+BGM 덕킹) | 후반 | 완성 릴스 테이블 스테이크스 |
 

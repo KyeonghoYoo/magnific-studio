@@ -11,13 +11,49 @@
     "approved_by_user": { "type": "boolean" },
     "stale": { "type": "boolean" },
     "updated_at": { "type": "string", "description": "ISO8601" },
+    "schema_version": { "type": "string", "default": "1.0", "description": "edit_plan EDL 스키마 버전. 재렌더·마이그레이션 호환성 판단용." },
+    "pipeline_version": { "type": "string", "description": "이 계획을 렌더한 post-production 레시피/플러그인 버전(예: magnific-studio 0.6.0). 결정적 재현의 바인딩." },
+    "render": {
+      "type": "object",
+      "description": "결정적 렌더 파라미터. 여기에 명시된 값만으로 소스에서 동일 산출물을 재현한다(암묵값 금지 = 멱등성).",
+      "properties": {
+        "fps": { "type": "integer", "default": 30 },
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "video_codec": { "type": "string", "default": "libx264" },
+        "crf": { "type": "integer", "default": 19 },
+        "preset": { "type": "string", "default": "veryfast" },
+        "pix_fmt": { "type": "string", "default": "yuv420p" },
+        "container": { "type": "string", "default": "mp4" },
+        "faststart": { "type": "boolean", "default": true },
+        "audio_codec": { "type": "string", "default": "aac" },
+        "audio_bitrate": { "type": "string", "default": "192k" },
+        "sample_rate": { "type": "integer", "default": 44100 },
+        "deterministic": { "type": "boolean", "default": true, "description": "동일 edit_plan + 동일 소스 → 프레임 결정적 재렌더(컨테이너 타임스탬프 제외 프레임 동일). 인코더 파라미터 고정 필수." }
+      }
+    },
     "source": {
       "type": "object",
-      "description": "편집 소재의 출처. production_manifest의 클립 또는 다운로드 경로.",
+      "description": "편집 소재의 출처 + 지문. 재렌더 전 지문을 대조해 소스 변경(=stale)을 탐지한다.",
       "properties": {
         "master_aspect": { "type": "string", "description": "예 16:9 또는 9:16 (네이티브 소재 비율)" },
         "fps": { "type": "number" },
-        "renders_dir": { "type": "string", "description": "다운로드한 클립 mp4들이 있는 로컬 경로" }
+        "renders_dir": { "type": "string", "description": "다운로드한 클립 mp4들이 있는 로컬 경로" },
+        "clips": {
+          "type": "array",
+          "description": "소스 클립 지문(멱등성 가드). 재렌더 시 duration/size(또는 sha256)가 바뀌었으면 소스가 달라진 것 — 경고.",
+          "items": {
+            "type": "object",
+            "required": ["clip_id"],
+            "properties": {
+              "clip_id": { "type": "string" },
+              "file": { "type": "string" },
+              "duration": { "type": "number" },
+              "size_bytes": { "type": "integer" },
+              "sha256": { "type": "string", "description": "선택 — 강한 지문." }
+            }
+          }
+        }
       }
     },
     "timeline": {
@@ -123,9 +159,33 @@
         }
       }
     },
+    "variants": {
+      "type": "array",
+      "description": "A/B 변형. 같은 소스 클립을 공유하며 base 대비 오버라이드만 기술한다 — 생성 재소비 0으로 다변형 렌더. diff·비교가 쉽다.",
+      "items": {
+        "type": "object",
+        "required": ["name", "overrides"],
+        "properties": {
+          "name": { "type": "string", "description": "변형 식별자(예: capA_hookB)" },
+          "overrides": {
+            "type": "object",
+            "description": "base edit_plan에 얹는 부분 패치. 지정한 키만 교체된다.",
+            "properties": {
+              "captions": { "type": "array", "description": "자막 전체 교체(카피 A/B 테스트)." },
+              "audio": { "type": "object", "description": "음악/싱크 오버라이드." },
+              "timeline_trims": { "type": "array", "description": "일부 컷 in/out·전환 오버라이드.", "items": { "type": "object" } },
+              "render": { "type": "object", "description": "렌더 파라미터 오버라이드(해상도·길이 등)." }
+            }
+          },
+          "deliverable_suffix": { "type": "string", "description": "출력 파일명 접미사(예: _capB)." },
+          "path": { "type": "string" },
+          "magnific_creation": { "type": "string" }
+        }
+      }
+    },
     "qc": {
       "type": "object",
-      "description": "납품 전 자동 검수 결과(ffprobe + 프레임 추출). 실패 시 납품 금지.",
+      "description": "납품 전 자동 검수 결과(ffprobe + 프레임 추출 = quality-reviewer 최종 렌더 심사). 실패 시 납품 금지.",
       "properties": {
         "passed": { "type": "boolean" },
         "checks": { "type": "array", "items": { "type": "string" } }

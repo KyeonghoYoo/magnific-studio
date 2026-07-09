@@ -1,2 +1,7 @@
 .DS_Store
 *.DS_Store
+
+# oh-my-claudecode operational artifacts (runtime state, logs, handoffs)
+.omc/*
+# Exception: project-scoped skills are meant to be committed
+!.omc/skills/

@@ -15,11 +15,13 @@ description: |
 
 후반의 정본 아티팩트는 **선언적 편집 계획** `edit_plan.json`(`schemas/edit_plan.schema.json`)이다. 에이전트는 창작 결정(컷·트림·전환·자막·음악·납품본)을 **데이터로 기술**하고, 결정적 ffmpeg 실행기가 이를 렌더한다(ShortGPT의 편집 마크업 패턴). 이렇게 분리하면 렌더 실패·재편집이 계획 데이터의 수정으로 환원되고, 어느 지점에서든 재개된다. **계획을 확정받은 뒤에만 렌더한다.**
 
+**버전드·멱등 렌더(v0.6.0).** edit_plan은 `schema_version`·`pipeline_version`을 갖고, **모든 렌더 파라미터를 `render` 블록에 명시**한다(암묵값 금지). 동일 edit_plan + 동일 소스 → **프레임 결정적 재렌더**(인코더 파라미터 고정, 컨테이너 타임스탬프만 예외). 재렌더는 **생성 재소비 0** — 소스 클립은 이미 있고 ffmpeg만 다시 돈다. 따라서 편집은 diff·재렌더·A/B가 자유롭다. **A/B 변형**은 `variants[]`에 base 대비 오버라이드(자막·음악·일부 트림)만 기술해 같은 소스로 다변형을 뽑는다(카피 A/B 등).
+
 ## 절차
 
 ### Step 0 — 소재 수집
 
-`creations_get`으로 숏별 클립 mp4 `url`을 얻어 `.studio/<project>/renders/`로 내려받는다. manifest의 씬 순서가 타임라인 기준. 각 소스의 실제 fps/해상도/길이를 `ffprobe`로 확인해 `edit_plan.source`에 기록한다(가정 금지).
+`creations_get`으로 숏별 클립 mp4 `url`을 얻어 `.studio/<project>/renders/`로 내려받는다. manifest의 씬 순서가 타임라인 기준. 각 소스의 실제 fps/해상도/길이를 `ffprobe`로 확인해 `edit_plan.source`에 기록하고(가정 금지), **소스 지문**(clip_id·duration·size_bytes, 필요 시 sha256)을 `source.clips[]`에 남긴다. 재렌더 전 지문을 대조해 소스가 바뀌었으면(=stale) 경고한다 — 멱등성 가드. 확정된 렌더 파라미터는 `render` 블록에, `pipeline_version`에 현재 플러그인 버전을 기록한다.
 
 ### Step 1 — 편집 계획 (사용자 확정)
 
@@ -140,3 +142,4 @@ Magnific은 편집을 실행하지 못하므로(타임라인/트랜지션/자막
 5. **음악 저작권**: 생성 트랙 외 음원은 사용자에게 라이선스 확인을 고지한다.
 6. **강등 금지**: 요청된 전환·자막·믹스를 조용히 생략하지 않는다 — 불가하면 blocker로 보고.
 7. **아카이브 필수**: 납품본은 Magnific Space에 최종본 노드 + 편집 레시피 텍스트 노드로 기록한다(Step 6). Space가 소재·최종본·명세의 단일 기록처가 되게 한다.
+8. **멱등 재렌더**: edit_plan은 버전드·결정적이다. 재렌더·A/B 변형은 **생성 재소비 0**(소스 클립 재사용, ffmpeg만 재실행) — 견적 불필요. 재렌더 전 `source.clips` 지문을 대조하고, 변형은 `variants[]` 오버라이드로만 기술한다(소스 재생성 금지).
