@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project_brief",
+  "type": "object",
+  "required": ["project", "stage_status", "approved_by_user", "updated_at", "logline", "synopsis", "style", "duration_sec", "aspect_ratio", "scenes"],
+  "properties": {
+    "project": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
+    "approved_by_user": { "type": "boolean" },
+    "stale": { "type": "boolean", "default": false },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "logline": { "type": "string", "maxLength": 300 },
+    "synopsis": { "type": "string" },
+    "style": {
+      "type": "object",
+      "required": ["visual"],
+      "properties": {
+        "visual": { "type": "string", "description": "예: cinematic, anime, 3D render" },
+        "tone": { "type": "string" },
+        "avoid": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "duration_sec": { "type": "integer", "minimum": 1 },
+    "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3", "21:9"] },
+    "target_audience": { "type": "string" },
+    "budget_cap_credits": { "type": ["integer", "null"], "minimum": 0 },
+    "preferred_models": {
+      "type": "object",
+      "properties": {
+        "image": { "type": ["string", "null"] },
+        "video": { "type": ["string", "null"] }
+      }
+    },
+    "video_plan_notes": { "type": "string", "description": "Magnific video_plan 툴 결과 요약 (모델 추천, 클립 분할 계획)" },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "slugline", "summary"],
+        "properties": {
+          "scene_id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
+          "slugline": { "type": "string", "description": "예: INT. COFFEE SHOP - NIGHT" },
+          "summary": { "type": "string" },
+          "characters": { "type": "array", "items": { "type": "string" } },
+          "target_duration_sec": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

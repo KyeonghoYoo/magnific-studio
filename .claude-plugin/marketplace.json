@@ -1,0 +1,18 @@
+{
+  "name": "riderly-marketplace",
+  "owner": {
+    "name": "ykh6242"
+  },
+  "metadata": {
+    "description": "Riderly 내부 Claude 플러그인 마켓플레이스",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "magnific-studio",
+      "source": "./",
+      "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획→캐릭터→콘티→영상→후반 5단계 파이프라인",
+      "version": "0.3.0"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "characters",
+  "type": "object",
+  "required": ["project", "stage_status", "approved_by_user", "updated_at", "characters"],
+  "properties": {
+    "project": { "type": "string" },
+    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
+    "approved_by_user": { "type": "boolean" },
+    "stale": { "type": "boolean", "default": false },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "name", "static_features", "dynamic_features"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "storyboard에서 참조하는 안정 키" },
+          "name": { "type": "string" },
+          "static_features": {
+            "type": "string",
+            "description": "불변 외모: 성별, 나이대, 피부톤, 얼굴 특징, 체형, 헤어"
+          },
+          "dynamic_features": {
+            "type": "string",
+            "description": "가변 요소: 의상, 소품, 상태"
+          },
+          "appearance_phrase": {
+            "type": "string",
+            "description": "motion_desc에서 이름 대신 쓸 짧은 외형 지칭구. 예: '짧은 머리에 초록 원피스를 입은 여성'"
+          },
+          "library_identifier": { "type": ["string", "null"], "description": "Magnific Library 캐릭터 자산 identifier" },
+          "views": {
+            "type": "object",
+            "properties": {
+              "front": { "$ref": "#/$defs/view" },
+              "side": { "$ref": "#/$defs/view" },
+              "back": { "$ref": "#/$defs/view" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "view": {
+      "type": "object",
+      "required": ["creation_identifier"],
+      "properties": {
+        "creation_identifier": { "type": "string" },
+        "web_url": { "type": "string" }
+      }
+    }
+  }
+}

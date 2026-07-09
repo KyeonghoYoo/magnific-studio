@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "production_manifest",
+  "type": "object",
+  "required": ["project", "stage_status", "approved_by_user", "updated_at", "spaces", "shots"],
+  "properties": {
+    "project": { "type": "string" },
+    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
+    "approved_by_user": { "type": "boolean" },
+    "stale": { "type": "boolean", "default": false },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "models": {
+      "type": "object",
+      "properties": {
+        "image": { "type": "string" },
+        "video": { "type": "string" }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "estimated_credits": { "type": "number" },
+        "approved_credits": { "type": "number" },
+        "spent_credits": { "type": "number" }
+      }
+    },
+    "spaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "space_id"],
+        "properties": {
+          "scene_id": { "type": "string" },
+          "space_id": { "type": "string" },
+          "web_url": { "type": "string" },
+          "anchor_frames": {
+            "type": "object",
+            "description": "camera position_id → 앵커 프레임 creation identifier",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["shot_id", "status"],
+        "properties": {
+          "shot_id": { "type": "string" },
+          "status": { "enum": ["pending", "keyframes_ready", "running", "succeeded", "failed", "skipped"] },
+          "first_frame": { "$ref": "#/$defs/asset" },
+          "last_frame": { "$ref": "#/$defs/asset" },
+          "clip": { "$ref": "#/$defs/asset" },
+          "node_ids": { "type": "array", "items": { "type": "string" } },
+          "run_identifier": { "type": ["string", "null"] },
+          "failure_reason": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "audio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "enum": ["tts", "music", "sfx"] },
+          "ref": { "type": "string", "description": "shot_id 또는 scene_id" },
+          "voice": { "type": ["string", "null"] },
+          "creation_identifier": { "type": ["string", "null"] },
+          "status": { "enum": ["pending", "succeeded", "failed"] }
+        }
+      }
+    },
+    "final_video": { "$ref": "#/$defs/asset" }
+  },
+  "$defs": {
+    "asset": {
+      "type": ["object", "null"],
+      "required": ["creation_identifier"],
+      "properties": {
+        "creation_identifier": { "type": "string" },
+        "web_url": { "type": "string" }
+      }
+    }
+  }
+}
