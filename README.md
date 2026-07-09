@@ -31,47 +31,115 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 
 ## 설치
 
-이 저장소는 단일 플러그인이자 마켓플레이스다(`.claude-plugin/marketplace.json` 포함). 목적에 맞게 셋 중 하나:
+두 환경에 설치할 수 있다. **결론부터**: 기획→납품 렌더까지 **전체 파이프라인은 Claude Code**가 정답이고, **Claude Desktop은 기획·캐릭터·콘티·심사까지의 서브셋**이다(후반 ffmpeg 렌더는 Desktop 실행 환경에 없다). 아래 표로 먼저 감을 잡자.
 
-### A. 마켓플레이스로 설치 (팀 공유·버전 관리, 권장)
+| | Claude Code | Claude Desktop (Cowork) |
+|---|:---:|:---:|
+| 슬래시 커맨드 `/ms-*` (7개) | ✅ | ❌ (스킬 이름으로 지시) |
+| 디렉터 스킬 (기획·캐릭터·콘티·제작·심사) | ✅ | ✅ (`.zip` 업로드) |
+| Magnific 생성 도구 (MCP) | ✅ 자동 등록 | ✅ 커스텀 커넥터 |
+| 후반 ffmpeg 렌더링 | ✅ | ❌ (계획까지만 → Code에서 렌더) |
+| 설치 난이도 | 명령어 2줄 | 커넥터 1개 + 스킬 9개 업로드 |
 
-GitHub 등 원격에 올린 뒤 Claude Code에서:
+---
+
+### A. Claude Code — 전체 기능 (권장)
+
+Claude Code 세션에서 아래 **두 줄**이면 끝이다. 커맨드 7개 + 스킬 8개 + Magnific MCP가 한 번에 등록된다.
 
 ```shell
-/plugin marketplace add <github-user>/magnific-studio
+/plugin marketplace add KyeonghoYoo/magnific-studio
 /plugin install magnific-studio@riderly-marketplace
 ```
 
-로컬 폴더를 바로 마켓플레이스로 써도 된다:
+- 1줄: 이 GitHub 저장소를 마켓플레이스로 등록 (마켓플레이스 이름은 `riderly-marketplace`)
+- 2줄: 플러그인 설치 — 번들된 Magnific MCP(`.mcp.json`)까지 **자동 등록**되므로 MCP를 따로 붙일 필요가 없다
+
+설치 후 바로:
+
+```
+/ms-plan [아이디어]  →  /ms-characters  →  /ms-storyboard  →  /ms-produce  →  /ms-post
+/ms-pipeline (전체 자동)   ·   /ms-status (진행 상황)
+```
+
+> 💡 **자주 쓰면 자동 활성화.** 프로젝트 공유용은 저장소의 `.claude/settings.json`, 나 혼자 늘 켜두려면 `~/.claude/settings.json`에:
+> ```json
+> {
+>   "extraKnownMarketplaces": {
+>     "riderly-marketplace": {
+>       "source": { "source": "github", "repo": "KyeonghoYoo/magnific-studio" },
+>       "autoUpdate": true
+>     }
+>   },
+>   "enabledPlugins": { "magnific-studio@riderly-marketplace": true }
+> }
+> ```
+
+<details>
+<summary>개발·로컬 설치 (직접 고치며 쓸 때)</summary>
 
 ```shell
+# 로컬 폴더를 마켓플레이스로 등록
 /plugin marketplace add /path/to/magnific-studio
 /plugin install magnific-studio@riderly-marketplace
-```
 
-### B. 설치 없이 바로 테스트 (개발용)
-
-```bash
+# 설치 없이 즉석 테스트
 claude --plugin-dir /path/to/magnific-studio
+
+# 배포 전 검증
+claude plugin validate /path/to/magnific-studio
 ```
 
-### C. 매 세션 자동 로드 (개인 상시 사용)
+커맨드는 네임스페이스된다: `/ms-plan` → `/magnific-studio:ms-plan`. 파일을 고쳤으면 `/reload-plugins`.
+</details>
+
+---
+
+### B. Claude Desktop / Cowork — 스킬 + 커넥터 (서브셋)
+
+Claude Desktop은 **Claude Code 플러그인 포맷을 지원하지 않는다.** 대신 ① Magnific을 **커넥터**로 붙이고 ② 디렉터 스킬들을 **커스텀 Skill(.zip)로 업로드**한다. 스킬 실행은 Desktop의 **Cowork**(에이전트 실행 모드)에서 이뤄진다.
+
+**시작하기 전에**
+- 플랜: **Pro / Max / Team / Enterprise** (Free는 사전 제작 스킬만)
+- **설정에서 코드 실행(Code execution)을 켠다** — 켜져야 Skills 메뉴가 나타난다
+- 스킬은 계정 단위 개인 설정이라, **팀원은 각자 업로드**한다(조직 일괄 배포 없음)
+
+**1) Magnific 커넥터 추가**
+> 설정 → 커넥터 → **커스텀 커넥터(원격)**
+> - URL: `https://mcp.magnific.com/mcp`
+> - 이름: `Magnific`
+
+**2) 스킬 9개 업로드**
+
+먼저 zip을 만든다(저장소에서 1회):
 
 ```bash
-cp -R /path/to/magnific-studio ~/.claude/skills/
+python3 desktop/build.py     # desktop/dist/*.zip 9개 생성
 ```
 
-→ `magnific-studio@skills-dir`로 자동 로드된다.
+그다음 **[claude.ai/customize/skills](https://claude.ai/customize/skills)** (설정 → Customize → Skills → Upload)에서 `desktop/dist/*.zip`을 하나씩 올린다. 웹에서 올리면 **같은 계정의 Desktop 앱/Cowork에도 자동으로 나타난다.** 권장 순서:
 
-> **커맨드는 네임스페이스된다**: `/ms-plan` → `/magnific-studio:ms-plan`, `/ms-post` → `/magnific-studio:ms-post` 등 (플러그인 간 충돌 방지). 변경 후에는 `/reload-plugins`.
->
-> **Claude 데스크톱 앱(Cowork)**도 동일한 마켓플레이스 체계를 쓴다 — 플러그인 관리에서 마켓플레이스를 추가해 설치한다. 배포 전 검증은 `claude plugin validate /path/to/magnific-studio`.
+1. `magnific-studio-core` (횡단 규칙, 최우선)
+2. `magnific-studio-quickstart` (진입점 안내)
+3. `planning-director` · `character-director` · `storyboard-director`
+4. `production-director` · `spaces-engineer` · `quality-reviewer`
+5. `post-production-director` (계획까지만 — 렌더는 Code)
 
-### Magnific MCP 연결
+> Desktop은 `description`을 **200자로 제한**하므로, 업로드용 스킬은 축약본으로 자동 생성된다(원본 `skills/`는 Claude Code용 전체 버전 그대로 유지).
 
-`.mcp.json`에 Magnific MCP 서버 선언이 포함되어 있어 플러그인 설치 시 자동 등록된다.
-정확한 엔드포인트·인증은 [Magnific MCP 공식 문서](https://docs.magnific.com/modelcontextprotocol)를 확인해 맞춘다.
-Claude 데스크톱/웹에서 커넥터로 이미 Magnific을 연결했다면 `.mcp.json` 없이도 동작한다(중복 시 `.mcp.json` 제거).
+**3) 사용**
+
+슬래시 커맨드가 없으니 **스킬 이름으로 지시**한다:
+
+```
+"magnific-studio-core 규칙을 따라, 이 아이디어를 planning-director로 기획해줘"
+```
+
+`magnific-studio-quickstart` 스킬이 "지금 어느 단계에서 어떤 스킬을 쓸지"를 안내한다.
+
+> ⚠️ **후반 렌더링은 Desktop에서 안 된다.** `post-production-director`는 Desktop에서 `edit_plan.json` **계획 수립까지만** 하고, 실제 ffmpeg 렌더는 **Claude Code에서** 실행한다. 끊김 없는 전 과정을 원하면 Claude Code를 쓰자.
+
+전체 절차·유지보수는 **[desktop/README.md](desktop/README.md)** 참조.
 
 ## 설계 원칙 (요약 — 상세는 DESIGN.md)
 

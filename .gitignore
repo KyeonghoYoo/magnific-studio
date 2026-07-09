@@ -5,3 +5,7 @@
 .omc/*
 # Exception: project-scoped skills are meant to be committed
 !.omc/skills/
+
+# Desktop skill build artifacts (regenerate with: python3 desktop/build.py)
+desktop/_stage/
+desktop/dist/
