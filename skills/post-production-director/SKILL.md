@@ -9,7 +9,7 @@ description: |
 먼저 `magnific-studio-core`·`quality-reviewer` 스킬을 읽었는지 확인한다. 입력: `production_manifest.json`의 숏별 clip(succeeded) 또는 `final_video`.
 
 생성 파이프라인(Magnific)의 구조적 한계 — 단순 이어붙이기, 균일한 클립 길이, 무음, 트랜지션/자막/믹스 부재 — 를 여기서 해소한다.
-실행 환경: 샌드박스 **ffmpeg**(+한글 폰트) / 필요 시 **librosa**(음악 분석)·**WhisperX/faster-whisper**(워드 타이밍). MoneyPrinterTurbo·ShortGPT의 ffmpeg 후반 자동화, Remotion의 Caption 스키마, OpenMontage의 렌더-후 자기검수 패턴을 참고(코드 미복사)한다.
+실행 환경: 샌드박스 **ffmpeg**(+한글 폰트) / 필요 시 **librosa**(음악 분석)·**WhisperX/faster-whisper**(워드 타이밍). MoneyPrinterTurbo·ShortGPT의 ffmpeg 후반 자동화, Remotion의 Caption 워드타이밍 개념, OpenMontage의 렌더-후 자기검수 패턴을 참고(코드 미복사)한다.
 
 ## 정본 = edit_plan.json (edit-as-data)
 
@@ -39,7 +39,7 @@ description: |
 
 **내레이션 VO(선택, `audio.voiceover`).** 대본이 있으면 `audio_voices_list`로 보이스를 고르고 `audio_tts`로 생성한다(**과금 — 견적 게이트**). 대본은 브랜드 보이스 준수. VO가 있으면 음악에 **사이드체인 덕킹**(Step 3d)을 적용해 말 위에서 음악이 자동으로 눌린다.
 
-**VO→자동 자막 타이밍(`voiceover.auto_captions`).** VO를 `WhisperX`/`faster-whisper`로 강제정렬해 워드 타이밍을 뽑고, Remotion `Caption` 스키마(`{word,start_ms,end_ms}`)로 `captions[].word_timings`를 채운다 → Step 3e의 ASS `\k` 카라오케로 번인. 손으로 타이밍을 찍지 않아도 프로급 팝 자막이 나온다.
+**VO→자동 자막 타이밍(`voiceover.auto_captions`).** VO를 `WhisperX`/`faster-whisper`로 강제정렬해 워드 타이밍을 뽑고, 자체 워드타이밍 스키마(`{word,start_ms,end_ms}` — Remotion Caption 개념 참고, Remotion 실제 타입은 `{text,startMs,endMs,…}`)로 `captions[].word_timings`를 채운다 → Step 3e의 ASS `\k` 카라오케로 번인. 손으로 타이밍을 찍지 않아도 프로급 팝 자막이 나온다.
 
 **서사와 음악의 빌드를 같은 지점에 정렬한다.** 소진→해방 같은 무드 전환 서사면 음악 빌드업/드롭이 그 전환점(예: 밤 라이딩 시작)에 떨어져야 한다. 정렬은 감(感)이 아니라 측정으로:
 
@@ -84,7 +84,7 @@ offset_k = (d0 + d1 + … + d[k-1]) − k*t        # k번째 전환의 offset
 
 한글 카피는 한 줄에 들어가는지 확인한다 — 세로 프레임 폭(720/1080)에서 긴 문장은 넘치거나 잘린다. 폰트 크기를 줄이거나 `WrapStyle 0`(스마트 랩)로 자동 줄바꿈을 허용하고, QC 프레임에서 실제 렌더를 육안 확인한다(실전: '오늘도 헬멧은 벽에 걸려만 있다.'가 한 줄에 맞도록 크기 조정).
 
-카라오케 팝 자막(WhisperX 워드 타이밍이 있을 때): `\k<cs>`=즉시 전환, `\kf<cs>`=좌→우 스윕, `\t(0,150,\fscx110\fscy110)`=팝 스케일, `\fad()`=페이드. `\k` 값 = 워드 지속×100(centiseconds). 워드 타이밍은 Remotion `Caption`(`{word,start_ms,end_ms}`) 스키마로 통일해 `edit_plan.captions[].word_timings`에 저장한다.
+카라오케 팝 자막(WhisperX 워드 타이밍이 있을 때): `\k<cs>`=즉시 전환, `\kf<cs>`=좌→우 스윕, `\t(0,150,\fscx110\fscy110)`=팝 스케일, `\fad()`=페이드. `\k` 값 = 워드 지속×100(centiseconds). 워드 타이밍은 자체 스키마(`{word,start_ms,end_ms}` — Remotion Caption 개념 참고)로 통일해 `edit_plan.captions[].word_timings`에 저장한다.
 
 **3f. 인코딩.** H.264 High, `yuv420p`, `-movflags +faststart`, AAC 192k, 30fps(모션 많으면 60).
 

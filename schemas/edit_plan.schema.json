@@ -94,7 +94,7 @@
           "style": { "type": "string", "description": "captions.styles의 스타일 키", "default": "body" },
           "word_timings": {
             "type": "array",
-            "description": "카라오케(\\k)용 워드 타이밍. WhisperX 강제정렬 또는 수동. Remotion Caption 스키마 호환.",
+            "description": "카라오케(\\k)용 워드 타이밍. WhisperX 강제정렬 또는 수동. Remotion Caption(정규화 워드타이밍) 개념을 참고한 자체 스키마 — Remotion 실제 타입은 {text,startMs,endMs,timestampMs,confidence}.",
             "items": {
               "type": "object",
               "required": ["word", "start_ms", "end_ms"],

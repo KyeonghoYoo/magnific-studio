@@ -3,7 +3,8 @@
 이 플러그인은 아래 오픈소스 프로젝트의 **설계 아이디어**를 참고했다. 어떤 프로젝트의 코드도 복사하거나 파생하지 않았다.
 
 - **ViMax** (HKUDS, MIT) — https://github.com/hkuds/vimax
-  참고한 아이디어: 기획/렌더 2단계 분리, 캐릭터 static/dynamic 특징 분리와 멀티뷰 레지스트리, 참조 이미지 선택 휴리스틱, variation_type 기반 렌더 모드 분기, 정적 스냅샷 프레임 규칙, 파일시스템 기반 산출물 캐싱.
+  README에서 직접 확인한 차용: 기획/렌더 2단계 분리, 참조 이미지 선택 휴리스틱("Intelligent Reference Images Selection"), 파일시스템 기반 산출물 캐싱(Working Directory Artifacts/Asset Indexing).
+  ViMax의 캐릭터 일관성 방향을 **적응·형식화**한 것(정본 소스 미확정, 우리 구현으로 승격): 캐릭터 static/dynamic 특징 분리, 멀티뷰(정면/측면/후면) 레지스트리, variation_type 기반 렌더 모드 분기, 정적 스냅샷 프레임 규칙.
 
 - **OpenMontage** (calesthio, AGPLv3) — https://github.com/calesthio/OpenMontage
   참고한 아이디어(코드 미복사, AGPL 비전염): 스테이지별 정본 아티팩트 계약, 승인 게이트 강제, Decision Log, "디스크가 진실" 관찰 모델, 얇은 진입점 라우팅 패턴.
@@ -19,7 +20,7 @@
 ## v0.3.0 후반 편집 추가 참고 (아이디어·스키마 차용, 코드 미복사)
 
 - **OpenMontage** (calesthio, AGPLv3) — 렌더-후 ffprobe 자기검수 QC, 프로바이더 스코어링 개념. **코드 미복사·AGPL 비전염**, QC를 자체 재구현.
-- **Remotion** (remotion.dev, 커스텀 라이선스 — 4인+ 유료) — `Caption` 스키마 `{word,start_ms,end_ms}`와 카라오케 페이징 **개념만** 차용. Remotion 코드·런타임 미사용, 자막은 libass(ASS `\k`)로 직접 구현해 라이선스 회피.
+- **Remotion** (remotion.dev, 커스텀 라이선스 — 4인+ 유료) — 정규화된 워드타이밍 `Caption` 타입과 카라오케 페이징 **개념만** 차용. Remotion의 실제 타입은 `{text, startMs, endMs, timestampMs, confidence}`이며, 우리는 그 개념을 참고해 **자체 스키마 `{word, start_ms, end_ms}`**로 정의했다(호환·복사 아님). 코드·런타임 미사용, 자막은 libass(ASS `\k`)로 직접 구현해 라이선스 회피.
 - **WhisperX** (m-bain, BSD-2) / **faster-whisper** (SYSTRAN, MIT) — 워드 단위 강제정렬 개념(선택적 워드타이밍 소스).
 - **librosa** (ISC) — 비트/온셋/RMS 음악 구조 분석으로 컷 스냅·빌드 정렬.
 - **MoviePy** (Zulko, MIT) — 불변 `.with_*` 합성 레이어(대안 실행기).
