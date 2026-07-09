@@ -11,6 +11,12 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 
 **v0.5.0**은 로드맵 2순위인 **자동 자기검수 QA**(`quality-reviewer` 교차 스킬)를 반영했다: 키프레임·클립·최종 렌더를 승인 게이트 **전에** 축별(brand_fit·character_consistency·prompt_adherence·spatial_continuity·technical)로 자동 심사해 `review`(verdict+원인 층위+issues)를 아티팩트에 부착하고, **승인을 이진→증거 기반으로** 승격했다(review 없이 승인 요청 금지). OpenMontage의 렌더-후 자기검수를 재구현했으며, 심사는 프레임 읽기·추론이라 **무과금**이다.
 
+**v0.6.0**은 로드맵 3순위인 **버전드·멱등 edit_plan**을 반영했다: `schema_version`·`pipeline_version` + 모든 인코딩 파라미터를 담은 `render` 블록으로 **동일 계획+소스 → 프레임 결정적 재렌더**를 보장하고, `source.clips` 지문으로 소스 변경을 탐지한다. `variants[]` 오버라이드(자막·음악·일부 트림)로 **생성 재소비 0의 A/B 다변형**을 뽑는다 — 카피 A/B 등을 클립 재생성 없이 렌더. 비용 거버넌스와 복리로 작동한다.
+
+**v0.7.0**은 로드맵 4순위인 **콘티 숏 생성 전략**을 반영했다: 숏마다 `generation_strategy`(generative·stock·hybrid)를 두어, 캐릭터·브랜드 식별자가 없는 설정 롱숏·B롤·인서트는 **Magnific 스톡**(`stock_search`→`stock_to_creation`)으로 대체해 비용·시간을 아낀다. 히어로 숏(캐릭터·감정 비트)만 생성에 예산을 집중 — 비용 게이트 서사를 직접 강화한다.
+
+**v0.8.0**은 로드맵 5순위인 **표준 후반 오디오 스택**을 반영했다: `audio.voiceover`로 내레이션을 `audio_tts`로 생성(보이스 선택+견적)하고, VO를 `WhisperX`로 강제정렬해 **워드 타이밍 카라오케 자막**(`captions[].word_timings`)을 자동 생성하며, VO 위에서 음악을 **사이드체인 덕킹**한다. 이로써 결과물이 "키프레임에 모션 붙인 것"이 아니라 **완성된 광고**가 된다. — 이로써 **2026 OSS 벤치마크 Adopt-now 로드맵 5/5를 완주**했다.
+
 ## 커맨드
 
 | 커맨드 | 역할 |

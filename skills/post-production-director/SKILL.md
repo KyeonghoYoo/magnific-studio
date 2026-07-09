@@ -33,9 +33,13 @@ description: |
 
 계획과 그 근거는 decision_log에 기록한다.
 
-### Step 2 — 음악과 싱크
+### Step 2 — 오디오 스택 (음악 · VO · 자막 타이밍)
 
-두 경로 중 사용자 선택: (a) `audio_music_generate`(분위기·구조·길이 지정, **simulate_cost 견적 먼저**), (b) 사용자 제공 음원(라이선스 고지).
+**음악.** 두 경로 중 사용자 선택: (a) `audio_music_generate`(분위기·구조·길이 지정, **simulate_cost 견적 먼저**), (b) 사용자 제공 음원(라이선스 고지).
+
+**내레이션 VO(선택, `audio.voiceover`).** 대본이 있으면 `audio_voices_list`로 보이스를 고르고 `audio_tts`로 생성한다(**과금 — 견적 게이트**). 대본은 브랜드 보이스 준수. VO가 있으면 음악에 **사이드체인 덕킹**(Step 3d)을 적용해 말 위에서 음악이 자동으로 눌린다.
+
+**VO→자동 자막 타이밍(`voiceover.auto_captions`).** VO를 `WhisperX`/`faster-whisper`로 강제정렬해 워드 타이밍을 뽑고, Remotion `Caption` 스키마(`{word,start_ms,end_ms}`)로 `captions[].word_timings`를 채운다 → Step 3e의 ASS `\k` 카라오케로 번인. 손으로 타이밍을 찍지 않아도 프로급 팝 자막이 나온다.
 
 **서사와 음악의 빌드를 같은 지점에 정렬한다.** 소진→해방 같은 무드 전환 서사면 음악 빌드업/드롭이 그 전환점(예: 밤 라이딩 시작)에 떨어져야 한다. 정렬은 감(感)이 아니라 측정으로:
 

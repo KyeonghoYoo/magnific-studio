@@ -134,7 +134,29 @@
           }
         },
         "clip_audio": { "type": "string", "enum": ["strip", "keep", "sfx_only"], "default": "strip", "description": "생성 클립 자체 오디오 처리. 기본 제거(앰비언스 불일치 방지)." },
-        "voiceover": { "type": "string", "description": "VO 트랙 경로(선택). 있으면 음악에 sidechain 덕킹 적용." },
+        "voiceover": {
+          "type": "object",
+          "description": "내레이션 VO(선택). 있으면 음악에 sidechain 덕킹 적용하고, 워드 타이밍으로 카라오케 자막을 자동 생성할 수 있다.",
+          "properties": {
+            "source": { "type": "string", "description": "로컬 VO 경로 또는 creation identifier. generate=true면 audio_tts 결과가 채워진다." },
+            "script": { "type": "string", "description": "TTS 대본(generate=true일 때). 브랜드 보이스 준수." },
+            "generate": { "type": "boolean", "default": false, "description": "true면 audio_tts로 생성(견적 게이트). false면 source 사용." },
+            "voice": { "type": "string", "description": "audio_voices_list에서 선택한 보이스 id/이름." },
+            "gain_db": { "type": "number", "default": 0 },
+            "auto_captions": { "type": "boolean", "default": false, "description": "true면 WhisperX/faster-whisper로 VO 워드 타이밍을 뽑아 captions[].word_timings(카라오케)를 채운다." }
+          }
+        },
+        "ducking": {
+          "type": "object",
+          "description": "VO가 있을 때 음악 사이드체인 덕킹 파라미터.",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "threshold": { "type": "number", "default": 0.03 },
+            "ratio": { "type": "number", "default": 8 },
+            "attack_ms": { "type": "number", "default": 20 },
+            "release_ms": { "type": "number", "default": 300 }
+          }
+        },
         "loudness_lufs": { "type": "number", "default": -14, "description": "최종 통합 라우드니스 타깃" },
         "true_peak_db": { "type": "number", "default": -1.5 }
       }

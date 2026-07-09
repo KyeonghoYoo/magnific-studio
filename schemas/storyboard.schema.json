@@ -50,6 +50,21 @@
             }
           },
           "sound": { "type": "array", "items": { "type": "string" } },
+          "generation_strategy": {
+            "enum": ["generative", "stock", "hybrid"],
+            "default": "generative",
+            "description": "소재 생성 방식. generative=키프레임 생성(히어로·캐릭터·감정 비트), stock=Magnific 스톡 대체(캐릭터·브랜드 식별자 없는 설정/B롤/인서트 — 비용·시간 절감), hybrid=스톡 배경/플레이트 + 생성 전경. 캐릭터가 있으면 pure stock 불가(hybrid 또는 generative)."
+          },
+          "stock": {
+            "type": "object",
+            "description": "generation_strategy가 stock/hybrid일 때 스톡 소싱 지시.",
+            "properties": {
+              "query": { "type": "string", "description": "stock_search 검색어" },
+              "orientation": { "type": "string", "description": "가로/세로/정사각 비율 힌트" },
+              "media": { "enum": ["photo", "video"], "default": "video" },
+              "creation_identifier": { "type": "string", "description": "stock_to_creation으로 확정된 스톡 creation id" }
+            }
+          },
           "duration_sec": { "type": "number", "minimum": 1, "maximum": 15 }
         },
         "allOf": [

@@ -1,7 +1,7 @@
 {
   "name": "magnific-studio",
-  "version": "0.6.0",
-  "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획, 캐릭터, 콘티, 영상 제작, 후반 편집까지 승인 게이트·비용 실측·심사 루프를 갖춘 5단계 파이프라인. v0.4.0 캐릭터 일관성 계약(reference_bank+인용 강제), v0.5.0 자동 자기검수 QA(quality-reviewer — 증거 기반 승인), v0.6.0 버전드·멱등 edit_plan(결정적 재렌더+소스 지문+A/B variants, 생성 재소비 0). 후반은 edit-as-data(edit_plan.json) 정본 + 구체 ffmpeg 레시피(전환 fade·오프셋 산식·덕킹·loudnorm 재측정)·librosa 음악 싱크·libass 한글 자막·9:16 재구도 사다리·렌더-후 QC·Magnific 아카이브. 실전 프로덕션 2편 검증 + 2026 OSS 벤치마크(BENCHMARKS.md)",
+  "version": "0.8.0",
+  "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획, 캐릭터, 콘티, 영상 제작, 후반 편집까지 승인 게이트·비용 실측·심사 루프를 갖춘 5단계 파이프라인. 2026 OSS 벤치마크 Adopt-now 로드맵 5/5 완주: v0.4.0 캐릭터 일관성 계약, v0.5.0 자동 자기검수 QA, v0.6.0 버전드·멱등 edit_plan(재렌더+A/B), v0.7.0 콘티 숏 전략(generative|stock|hybrid), v0.8.0 후반 오디오 스택(TTS 내레이션+VO 워드타이밍 카라오케 자막+BGM 덕킹). 후반은 edit-as-data(edit_plan.json) 정본 + 구체 ffmpeg 레시피(전환 fade·오프셋 산식·덕킹·loudnorm 재측정)·librosa 음악 싱크·libass 한글 자막·9:16 재구도 사다리·렌더-후 QC·Magnific 아카이브. 실전 프로덕션 2편 검증 + 2026 OSS 벤치마크(BENCHMARKS.md)",
   "author": {
     "name": "ykh6242"
   },

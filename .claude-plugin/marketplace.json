@@ -12,7 +12,7 @@
       "name": "magnific-studio",
       "source": "./",
       "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획→캐릭터→콘티→영상→후반 5단계 파이프라인",
-      "version": "0.6.0"
+      "version": "0.8.0"
     }
   ]
 }

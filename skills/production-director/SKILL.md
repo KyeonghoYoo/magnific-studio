@@ -25,7 +25,7 @@ description: |
 
 ### Step 3 — 키프레임 생성 + 품질 심사 루프
 
-숏별 first_frame(필요시 last_frame)을 생성한다:
+**숏 생성 전략 분기(먼저 확인).** 숏의 `generation_strategy`가 `stock`이면 키프레임을 생성하지 않고 `stock_search`→(`stock_show` 확인)→`stock_to_creation`으로 스톡 소재를 소싱해 클립 노드에 배선한다(캐릭터 없음 확인 — 있으면 콘티 결함). `hybrid`면 스톡을 배경/플레이트로 두고 전경(캐릭터)만 생성한다. `stock.creation_identifier`를 manifest에 기록하고, **비용 견적에서 stock 숏은 제외**한다. 아래 절차는 `generative`(및 hybrid의 생성 전경)에 적용된다:
 
 1. **캐릭터 일관성 계약 강제(하드).** 숏의 `characters[]`가 비어있지 않고 `consistency_policy.enforce_citation=true`면, 각 캐릭터의 `reference_bank`에서 `reference_selection` 휴리스틱으로 참조를 골라 키프레임 노드에 **반드시 배선**한다(최소 `min_citations`개, `primary_ref` 포함). 인용 없이는 생성하지 않는다 — 텍스트 프롬프트만으로 정체성을 지어내면 드리프트한다. 배선한 참조 id는 manifest의 해당 숏 `references_used`에 기록한다.
 2. **variation 2~3장 생성** 후 `quality-reviewer`로 자동 심사해 최선을 채택하고, 결과를 manifest 숏 `review.keyframe`(축·verdict·cause_layer·issues)에 기록한다(`consistency_check`는 character_consistency 축 요약):
