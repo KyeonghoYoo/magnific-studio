@@ -9,33 +9,88 @@
     "approved_by_user": { "type": "boolean" },
     "stale": { "type": "boolean", "default": false },
     "updated_at": { "type": "string", "format": "date-time" },
+    "consistency_policy": {
+      "type": "object",
+      "description": "캐릭터 일관성 계약의 전역 정책. 하류 스테이지(콘티·영상)가 이 규칙으로 참조를 배선·검증한다.",
+      "properties": {
+        "enforce_citation": {
+          "type": "boolean",
+          "default": true,
+          "description": "캐릭터가 등장하는 모든 키프레임 생성은 해당 캐릭터 reference_bank의 id를 최소 min_citations개 인용(참조 배선)해야 한다. 미인용 생성 금지 — 텍스트 프롬프트만으로 정체성을 지어내면 드리프트한다."
+        },
+        "min_citations": { "type": "integer", "default": 1, "minimum": 1 },
+        "reference_selection": {
+          "type": "string",
+          "default": "최근 프레임 우선 → 같은 position_id 앵커 우선 → 3뷰 중 카메라 방향 일치 1장, 총 ≤8장, 중복 정보 배제",
+          "description": "참조 선택 휴리스틱(spaces-engineer와 일치)."
+        },
+        "drift_action": {
+          "type": "string",
+          "default": "앵커 프레임 + Library 참조를 강화해 재생성, 반복 실패 시 static_features 기술을 보강",
+          "description": "일관성 심사에서 드리프트 발견 시 조치."
+        }
+      }
+    },
     "characters": {
       "type": "array",
       "items": {
         "type": "object",
         "required": ["key", "name", "static_features", "dynamic_features"],
         "properties": {
-          "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "storyboard에서 참조하는 안정 키" },
+          "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "storyboard.characters[]가 참조하는 안정 키. reference_bank 인용의 논리 id." },
           "name": { "type": "string" },
           "static_features": {
             "type": "string",
-            "description": "불변 외모: 성별, 나이대, 피부톤, 얼굴 특징, 체형, 헤어"
+            "description": "불변 외모: 성별, 나이대, 피부톤, 얼굴 특징, 체형, 헤어. 캐릭터 동일성의 근거 — 절대 보존."
           },
           "dynamic_features": {
             "type": "string",
-            "description": "가변 요소: 의상, 소품, 상태"
+            "description": "가변 요소: 의상, 소품, 상태. 씬 지시에 따라 교체."
           },
           "appearance_phrase": {
             "type": "string",
             "description": "motion_desc에서 이름 대신 쓸 짧은 외형 지칭구. 예: '짧은 머리에 초록 원피스를 입은 여성'"
           },
-          "library_identifier": { "type": ["string", "null"], "description": "Magnific Library 캐릭터 자산 identifier" },
+          "library_identifier": { "type": ["string", "null"], "description": "Magnific Library 캐릭터 자산 identifier(네이티브 참조)." },
           "views": {
             "type": "object",
+            "description": "3뷰 기준 이미지(정면/측면/후면).",
             "properties": {
               "front": { "$ref": "#/$defs/view" },
               "side": { "$ref": "#/$defs/view" },
               "back": { "$ref": "#/$defs/view" }
+            }
+          },
+          "reference_bank": {
+            "type": "object",
+            "description": "★ 캐릭터 일관성 계약의 핵심. 하류 생성(images_generate·video_generate)이 이 캐릭터를 그릴 때 반드시 인용해야 하는 정체성 앵커 모음. 프로덕션이 진행되며 앵커 프레임이 누적된다.",
+            "required": ["primary_ref", "citation_ids"],
+            "properties": {
+              "primary_ref": {
+                "type": "string",
+                "description": "가장 권위 있는 단일 참조 id(보통 library_identifier 또는 front view creation id). 캐릭터 등장 생성은 최소 이 id를 인용한다."
+              },
+              "citation_ids": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "이 캐릭터의 유효 참조 id 집합(library + 3뷰 + 누적 앵커 프레임). 하류는 reference_selection에 따라 이 중에서 고른다."
+              },
+              "locked_seed": { "type": ["integer", "null"], "description": "백엔드가 지원하면 결정적 생성용 고정 시드." },
+              "anchor_frames": {
+                "type": "array",
+                "description": "카메라 포지션별 최선 키프레임(프로덕션 중 누적). 같은 position_id 숏 재생성 시 우선 참조.",
+                "items": {
+                  "type": "object",
+                  "required": ["position_id", "creation_identifier"],
+                  "properties": {
+                    "position_id": { "type": "string", "description": "storyboard camera.position_id" },
+                    "creation_identifier": { "type": "string" },
+                    "note": { "type": "string" }
+                  }
+                }
+              },
+              "style_refs": { "type": "array", "items": { "type": "string" }, "description": "스타일/LoRA 참조 id(선택)." },
+              "citation_required": { "type": "boolean", "default": true, "description": "false면 이 캐릭터에 한해 인용 강제를 면제(예: 실루엣·군중)." }
             }
           }
         }

@@ -58,10 +58,11 @@ description: |
 
 ## 참조 이미지 선택 휴리스틱 (키프레임 생성 시)
 
-후보 참조가 많을 때:
+캐릭터가 등장하는 키프레임은 후보를 **해당 캐릭터 `reference_bank.citation_ids`에서** 고른다(캐릭터 일관성 계약 — core 규칙 5). `enforce_citation=true`면 최소 `min_citations`개를 반드시 배선하고 `primary_ref`를 포함한다. 후보가 많을 때 우선순위:
 
 - 시간순으로 **최근 프레임 우선** (직전 숏의 프레임이 가장 강한 연속성 근거)
-- **같은 camera.position_id의 기존 프레임 우선** (구도 연속성)
+- **같은 camera.position_id의 앵커 프레임 우선**(`reference_bank.anchor_frames`) (구도 연속성)
 - 캐릭터 3뷰 중에서는 해당 숏의 카메라 방향과 맞는 뷰 **1개만**
 - 중복 정보를 주는 참조는 배제, 총 참조 수는 모델 한도 이내(보통 최대 8장)
 - 프롬프트에 참조 역할을 명시: "인물의 얼굴은 참조 1을, 배경은 참조 2를 따른다"
+- 배선한 참조 id를 manifest의 숏 `references_used`에 기록한다(프로버넌스).

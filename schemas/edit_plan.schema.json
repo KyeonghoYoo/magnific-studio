@@ -36,7 +36,7 @@
             "type": "object",
             "description": "앞 컷과의 전환. 첫 컷은 생략/none.",
             "properties": {
-              "type": { "enum": ["cut", "dissolve", "fade", "fadeblack", "fadewhite", "wipeleft", "wiperight", "slideup", "slidedown", "circleopen", "radial"] },
+              "type": { "enum": ["cut", "fade", "dissolve", "fadeblack", "fadewhite", "wipeleft", "wiperight", "slideup", "slidedown", "circleopen", "radial"], "description": "매끈한 전환은 fade(크로스디졸브) 우선. ffmpeg dissolve는 노이즈 디더라 AI 생성 클립에서 지지직거림 — 그레인 의도 아니면 피한다." },
               "duration": { "type": "number", "description": "전환 길이(초). xfade duration." }
             }
           },

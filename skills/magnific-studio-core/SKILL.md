@@ -45,10 +45,11 @@ description: |
 
 ## 게이트 규칙 (하드 룰)
 
-1. **승인 게이트**: 이전 스테이지 아티팩트의 `approved_by_user`가 `true`가 아니면 다음 스테이지를 시작하지 않는다. 승인은 사용자에게 아티팩트 요약을 보여주고 명시적으로 받는다 (AskUserQuestion 가능 환경이면 사용).
+1. **승인 게이트(증거 기반)**: 이전 스테이지 아티팩트의 `approved_by_user`가 `true`가 아니면 다음 스테이지를 시작하지 않는다. 승인은 사용자에게 아티팩트 요약을 보여주고 명시적으로 받는다 (AskUserQuestion 가능 환경이면 사용). **생성 산출물(키프레임·클립·최종 렌더)의 승인은 `quality-reviewer`의 자동 자기검수(`review`)를 먼저 붙여 증거와 함께 제시한다** — review 없이 승인 게이트를 올리지 않는다. verdict가 pass인 것만 승인 후보.
 2. **비용 게이트**: 크레딧이 소모되는 실행(`spaces_run`, `images_generate`, `video_generate`, `audio_*` 등) 전에 반드시 `simulate_spaces` 또는 `simulate_cost`로 견적을 내고, `project_brief.budget_cap_credits`와 비교해 사용자 승인을 받는다. 견적 없는 실행 금지. 러프 콘티용 저비용 이미지 1장 수준의 미세 비용도 최초 1회는 고지한다. 견적과 별개로 **과금 경로는 실측**한다 — 같은 모델도 GUI/MCP 경로에 따라 0크레딧과 과금으로 갈린다(spaces-engineer의 실행 2모드 참조). `account_balance`의 `unlimitedAppliesHere` 필드와 1노드 실행 전후 잔액 비교가 근거다.
 3. **증거 원칙**: 툴 결과나 파일 상태가 증명하지 않는 한 기획·생성·렌더가 완료되었다고 주장하지 않는다.
 4. **강등 금지**: 모션(영상) 요청을 정지 이미지로, 사용자가 확정한 모델을 다른 모델로 조용히 대체하지 않는다. 불가능하면 blocker로 보고하고 결정을 요청한다.
+5. **캐릭터 일관성 계약**: `characters.json`의 `consistency_policy.enforce_citation=true`이면, 캐릭터가 등장하는 모든 키프레임 생성은 해당 캐릭터 `reference_bank`의 참조 id를 최소 `min_citations`개 인용(배선)해야 한다. 텍스트 프롬프트만으로 정체성을 지어내는 생성 금지. 인용 id는 manifest `references_used`에, 일관성 심사는 `consistency_check`에 기록한다(character-director / production-director).
 
 ## Decision Log
 
