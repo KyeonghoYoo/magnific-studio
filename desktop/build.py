@@ -6,9 +6,16 @@ characters, while the Claude Code plugin uses longer descriptions. This script
 copies each skill, rewrites only the frontmatter `description` to a <=200-char
 Desktop variant, and zips each folder (folder as archive root) into dist/.
 
+Change detection: a content hash of each skill's files is compared against the
+previous build (desktop/.build-manifest.json). The summary marks each zip as
+NEW / CHANGED / unchanged so you only re-upload what actually changed at
+https://claude.ai/customize/skills.
+
 Run:  python3 desktop/build.py
-Output: desktop/dist/<skill>.zip  (upload each at claude.ai/customize/skills)
+Output: desktop/dist/<skill>.zip
 """
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -19,6 +26,7 @@ SKILLS = os.path.join(ROOT, "skills")
 SRC_EXTRA = os.path.join(ROOT, "desktop", "skills-src")
 STAGE = os.path.join(ROOT, "desktop", "_stage")
 DIST = os.path.join(ROOT, "desktop", "dist")
+MANIFEST = os.path.join(ROOT, "desktop", ".build-manifest.json")
 
 # Desktop-ready descriptions (<=200 chars). Verified: no "claude"/"anthropic",
 # lowercase-hyphen names, single-line values.
@@ -51,18 +59,39 @@ def rewrite_description(skill_md_path, new_desc):
     _, _frontmatter, body = text.split("---", 2)
     body = body.lstrip("\n")
     esc = new_desc.replace('"', '\\"')
-    return f'---\nname: {os.path.basename(os.path.dirname(skill_md_path))}\ndescription: "{esc}"\n---\n\n{body}'
+    name = os.path.basename(os.path.dirname(skill_md_path))
+    return f'---\nname: {name}\ndescription: "{esc}"\n---\n\n{body}'
+
+
+def content_hash(skill_dir):
+    """Stable hash over all files in a staged skill dir (path + bytes)."""
+    h = hashlib.sha256()
+    for dirpath, _dirs, files in os.walk(skill_dir):
+        for fn in sorted(files):
+            fp = os.path.join(dirpath, fn)
+            rel = os.path.relpath(fp, skill_dir)
+            h.update(rel.encode("utf-8"))
+            with open(fp, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()
 
 
 def main():
+    prev = {}
+    if os.path.isfile(MANIFEST):
+        try:
+            with open(MANIFEST, encoding="utf-8") as f:
+                prev = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            prev = {}
+
     if os.path.isdir(STAGE):
         shutil.rmtree(STAGE)
-    if os.path.isdir(DIST):
-        shutil.rmtree(DIST)
     os.makedirs(STAGE)
-    os.makedirs(DIST)
+    os.makedirs(DIST, exist_ok=True)
 
-    built = []
+    manifest = {}
+    statuses = []  # (name, status)
     for name, desc in DESKTOP_DESCRIPTIONS.items():
         src = os.path.join(SKILLS, name) if desc is not None else os.path.join(SRC_EXTRA, name)
         if not os.path.isdir(src):
@@ -89,15 +118,42 @@ def main():
                 val = line[len("description:"):].strip().strip('"')
                 if len(val) > 200:
                     raise SystemExit(f"{name}: description {len(val)} > 200 chars")
-                print(f"ok {name}: description {len(val)} chars")
 
+        digest = content_hash(stage_dir)
+        manifest[name] = digest
         zip_path = os.path.join(DIST, f"{name}.zip")
-        subprocess.run(["zip", "-rq", zip_path, name], cwd=STAGE, check=True)
-        built.append(name)
+        if name not in prev:
+            status = "NEW"
+        elif prev[name] != digest:
+            status = "CHANGED"
+        else:
+            status = "unchanged"
+        statuses.append((name, status))
 
-    print(f"\nBuilt {len(built)} zip(s) in desktop/dist/:")
-    for n in built:
-        print(f"  - {n}.zip")
+        # Always (re)write the zip so dist/ is complete; the status tells the
+        # user which ones actually need re-uploading.
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+        subprocess.run(["zip", "-rq", zip_path, name], cwd=STAGE, check=True)
+
+    with open(MANIFEST, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2, sort_keys=True)
+    shutil.rmtree(STAGE)
+
+    changed = [n for n, s in statuses if s in ("NEW", "CHANGED")]
+    print("빌드 결과 (desktop/dist/):")
+    for name, status in statuses:
+        mark = {"NEW": "🆕", "CHANGED": "✏️ ", "unchanged": "  "}[status]
+        label = "" if status == "unchanged" else f"  <- {status}"
+        print(f"  {mark} {name}.zip{label}")
+
+    print()
+    if changed:
+        print(f"재업로드 필요 ({len(changed)}개) — claude.ai/customize/skills에서 교체:")
+        for n in changed:
+            print(f"  - {n}.zip")
+    else:
+        print("변경 없음 — Desktop 재업로드 불필요.")
 
 
 if __name__ == "__main__":

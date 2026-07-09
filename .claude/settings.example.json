@@ -1,0 +1,12 @@
+{
+  "_comment": "magnific-studio 자동 설치·자동 업데이트 템플릿. 이 파일을 '.claude/settings.json'(프로젝트 공유) 또는 '~/.claude/settings.json'(개인 전역)으로 복사하면, 다음 Claude Code 시작 시 마켓플레이스 갱신 + 플러그인 업데이트가 자동으로 일어난다(버전이 올랐을 때만). 이 저장소를 개발용으로 열 때는 로컬 버전과 충돌할 수 있으니, 소비하는 다른 프로젝트나 전역 설정에만 적용하는 것을 권장한다. '_comment' 키는 복사 후 제거해도 된다.",
+  "extraKnownMarketplaces": {
+    "riderly-marketplace": {
+      "source": { "source": "github", "repo": "KyeonghoYoo/magnific-studio" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "magnific-studio@riderly-marketplace": true
+  }
+}

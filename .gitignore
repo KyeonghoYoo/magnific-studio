@@ -9,3 +9,4 @@
 # Desktop skill build artifacts (regenerate with: python3 desktop/build.py)
 desktop/_stage/
 desktop/dist/
+desktop/.build-manifest.json

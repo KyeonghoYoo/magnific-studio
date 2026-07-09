@@ -108,5 +108,8 @@ Desktop용 .zip을 다시 생성하려면:
 python3 desktop/build.py
 ```
 
-`skills/`의 원본을 복사해 `description`만 200자 이내로 리라이트하고 `desktop/dist/*.zip`으로 패키징한다.
-Desktop 전용 진입점 스킬 원본은 `desktop/skills-src/magnific-studio-quickstart/`에 있다.
+- `skills/`의 원본을 복사해 `description`만 200자 이내로 리라이트하고(초과 시 빌드 실패) `desktop/dist/*.zip`으로 패키징한다.
+- **변경 감지**: 이전 빌드와 비교해 각 zip을 `NEW`·`CHANGED`·`unchanged`로 표시한다. `NEW`/`CHANGED`로 나온 것만 claude.ai에서 재업로드하면 된다(변경 이력은 `desktop/.build-manifest.json`, gitignore됨).
+- Desktop 전용 진입점 스킬 원본은 `desktop/skills-src/magnific-studio-quickstart/`에 있다.
+
+전체 릴리스·업데이트 절차(두 채널)는 **[../RELEASE.md](../RELEASE.md)** 참조.

@@ -141,6 +141,17 @@ python3 desktop/build.py     # desktop/dist/*.zip 9개 생성
 
 전체 절차·유지보수는 **[desktop/README.md](desktop/README.md)** 참조.
 
+---
+
+### 업데이트 (두 채널)
+
+코드 푸시만으로는 어느 채널도 자동 반영되지 않는다. 채널마다 방식이 다르다:
+
+- **Claude Code**: 플러그인 런타임을 고쳤으면 **버전 bump**(`plugin.json`+`marketplace.json`)가 필수다. 이후 `autoUpdate: true`면 다음 시작 시 자동, 아니면 `/plugin marketplace update riderly-marketplace` → `/plugin update magnific-studio@riderly-marketplace` → `/reload-plugins`.
+- **Claude Desktop**: 스킬 본문을 고쳤으면 `python3 desktop/build.py` 후 `CHANGED`/`NEW`로 표시된 zip만 재업로드(계정별 수동).
+
+버전·description 규율과 릴리스 체크리스트는 **[RELEASE.md](RELEASE.md)** 참조.
+
 ## 설계 원칙 (요약 — 상세는 DESIGN.md)
 
 1. **단계당 정본 아티팩트 1개 = 계약.** JSON 스키마(`schemas/`)로 검증하고, 다음 단계는 그것만 신뢰한다.
