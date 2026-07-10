@@ -2,56 +2,176 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "storyboard",
   "type": "object",
-  "required": ["project", "stage_status", "approved_by_user", "updated_at", "shots"],
+  "required": [
+    "project",
+    "stage_status",
+    "approved_by_user",
+    "updated_at",
+    "shots"
+  ],
   "properties": {
-    "project": { "type": "string" },
-    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
-    "approved_by_user": { "type": "boolean" },
-    "stale": { "type": "boolean", "default": false },
-    "updated_at": { "type": "string", "format": "date-time" },
+    "project": {
+      "type": "string"
+    },
+    "stage_status": {
+      "enum": [
+        "draft",
+        "awaiting_approval",
+        "approved"
+      ]
+    },
+    "approved_by_user": {
+      "type": "boolean"
+    },
+    "stale": {
+      "type": "boolean",
+      "default": false
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "shots": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["shot_id", "scene_id", "camera", "variation_type", "characters", "first_frame_desc", "motion_desc", "duration_sec"],
+        "required": [
+          "shot_id",
+          "scene_id",
+          "camera",
+          "variation_type",
+          "characters",
+          "first_frame_desc",
+          "motion_desc",
+          "duration_sec"
+        ],
         "properties": {
-          "shot_id": { "type": "string", "pattern": "^s[0-9]{2,}_sh[0-9]{2,}$" },
-          "scene_id": { "type": "string" },
+          "shot_id": {
+            "type": "string",
+            "pattern": "^s[0-9]{2,}_sh[0-9]{2,}$"
+          },
+          "scene_id": {
+            "type": "string"
+          },
           "camera": {
             "type": "object",
-            "required": ["shot_size", "angle", "movement", "position_id"],
+            "required": [
+              "shot_size",
+              "angle",
+              "movement",
+              "position_id"
+            ],
             "properties": {
-              "shot_size": { "enum": ["extreme_wide", "wide", "full", "medium", "medium_close_up", "close_up", "extreme_close_up"] },
-              "angle": { "enum": ["eye_level", "high", "low", "overhead", "dutch"] },
-              "movement": { "enum": ["static", "pan_left", "pan_right", "tilt_up", "tilt_down", "dolly_in", "dolly_out", "slow_push_in", "pull_back", "handheld", "orbit", "crane"] },
-              "lens": { "type": "string", "description": "예: 24mm, 50mm, 85mm" },
-              "position_id": { "type": "string", "description": "물리적 카메라 포지션 그룹 키. 예: cam01" }
+              "shot_size": {
+                "enum": [
+                  "extreme_wide",
+                  "wide",
+                  "full",
+                  "medium",
+                  "medium_close_up",
+                  "close_up",
+                  "extreme_close_up"
+                ]
+              },
+              "angle": {
+                "enum": [
+                  "eye_level",
+                  "high",
+                  "low",
+                  "overhead",
+                  "dutch"
+                ]
+              },
+              "movement": {
+                "enum": [
+                  "static",
+                  "pan_left",
+                  "pan_right",
+                  "tilt_up",
+                  "tilt_down",
+                  "dolly_in",
+                  "dolly_out",
+                  "slow_push_in",
+                  "pull_back",
+                  "handheld",
+                  "orbit",
+                  "crane"
+                ]
+              },
+              "lens": {
+                "type": "string",
+                "description": "예: 24mm, 50mm, 85mm"
+              },
+              "position_id": {
+                "type": "string",
+                "description": "물리적 카메라 포지션 그룹 키. 예: cam01"
+              }
             }
           },
           "variation_type": {
-            "enum": ["small", "medium", "large"],
+            "enum": [
+              "small",
+              "medium",
+              "large"
+            ],
             "description": "small=첫프레임만+FF2V, medium/large=첫+끝프레임+FLF2V"
           },
-          "characters": { "type": "array", "items": { "type": "string" }, "description": "characters.json의 key 참조" },
-          "first_frame_desc": { "type": "string", "description": "정적 스냅샷. 진행형 동작 금지" },
-          "last_frame_desc": { "type": ["string", "null"], "description": "variation_type=small이면 null" },
-          "motion_desc": { "type": "string", "description": "카메라 무브먼트 + 인물 동작. 캐릭터는 appearance_phrase로 지칭" },
+          "characters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "characters.json의 key 참조"
+          },
+          "first_frame_desc": {
+            "type": "string",
+            "description": "정적 스냅샷. 진행형 동작 금지"
+          },
+          "last_frame_desc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "variation_type=small이면 null"
+          },
+          "motion_desc": {
+            "type": "string",
+            "description": "카메라 무브먼트 + 인물 동작. 캐릭터는 appearance_phrase로 지칭"
+          },
           "dialogue": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["speaker", "line"],
+              "required": [
+                "speaker",
+                "line"
+              ],
               "properties": {
-                "speaker": { "type": "string" },
-                "emotion": { "type": "string" },
-                "line": { "type": "string" }
+                "speaker": {
+                  "type": "string"
+                },
+                "emotion": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "string"
+                }
               }
             }
           },
-          "sound": { "type": "array", "items": { "type": "string" } },
+          "sound": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "generation_strategy": {
-            "enum": ["generative", "stock", "hybrid"],
+            "enum": [
+              "generative",
+              "stock",
+              "hybrid"
+            ],
             "default": "generative",
             "description": "소재 생성 방식. generative=키프레임 생성(히어로·캐릭터·감정 비트), stock=Magnific 스톡 대체(캐릭터·브랜드 식별자 없는 설정/B롤/인서트 — 비용·시간 절감), hybrid=스톡 배경/플레이트 + 생성 전경. 캐릭터가 있으면 pure stock 불가(hybrid 또는 generative)."
           },
@@ -59,21 +179,131 @@
             "type": "object",
             "description": "generation_strategy가 stock/hybrid일 때 스톡 소싱 지시.",
             "properties": {
-              "query": { "type": "string", "description": "stock_search 검색어" },
-              "orientation": { "type": "string", "description": "가로/세로/정사각 비율 힌트" },
-              "media": { "enum": ["photo", "video"], "default": "video" },
-              "creation_identifier": { "type": "string", "description": "stock_to_creation으로 확정된 스톡 creation id" }
+              "query": {
+                "type": "string",
+                "description": "stock_search 검색어"
+              },
+              "orientation": {
+                "type": "string",
+                "description": "가로/세로/정사각 비율 힌트"
+              },
+              "media": {
+                "enum": [
+                  "photo",
+                  "video"
+                ],
+                "default": "video"
+              },
+              "creation_identifier": {
+                "type": "string",
+                "description": "stock_to_creation으로 확정된 스톡 creation id"
+              }
             }
           },
-          "duration_sec": { "type": "number", "minimum": 1, "maximum": 15 }
+          "duration_sec": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 15
+          }
         },
         "allOf": [
           {
-            "if": { "properties": { "variation_type": { "const": "small" } } },
-            "then": { "properties": { "last_frame_desc": { "type": "null" } } },
-            "else": { "required": ["last_frame_desc"], "properties": { "last_frame_desc": { "type": "string" } } }
+            "if": {
+              "properties": {
+                "variation_type": {
+                  "const": "small"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "last_frame_desc": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "required": [
+                "last_frame_desc"
+              ],
+              "properties": {
+                "last_frame_desc": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ]
+      }
+    },
+    "aspect_variants": {
+      "type": "array",
+      "description": "비율 파생 브랜치(1급 개념). 비율 파생은 크롭이 아니라 재구도다 — 세로 등 다른 비율은 숏 문법이 달라질 수 있으므로 오버라이드를 데이터로 기술한다.",
+      "items": {
+        "type": "object",
+        "required": [
+          "aspect"
+        ],
+        "properties": {
+          "aspect": {
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:5",
+              "21:9"
+            ]
+          },
+          "strategy": {
+            "enum": [
+              "native",
+              "blur_pad",
+              "pad",
+              "center_crop",
+              "auto_reframe"
+            ],
+            "default": "native",
+            "description": "native=재구도 재생성(최선)"
+          },
+          "label_prefix": {
+            "type": "string",
+            "description": "Space 노드 이름 프리픽스. 예 [9:16]"
+          },
+          "shot_overrides": {
+            "type": "array",
+            "description": "기본 숏 대비 달라지는 것만 기술(구도·모션·전용 프롬프트). 미기재 숏은 기본 정의를 비율만 바꿔 사용.",
+            "items": {
+              "type": "object",
+              "required": [
+                "shot_id"
+              ],
+              "properties": {
+                "shot_id": {
+                  "type": "string"
+                },
+                "camera": {
+                  "type": "object"
+                },
+                "first_frame_desc": {
+                  "type": "string"
+                },
+                "last_frame_desc": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "motion_desc": {
+                  "type": "string",
+                  "description": "비율 전용 모션이 필요하면 기술(공유 모션과 분리)"
+                },
+                "notes": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

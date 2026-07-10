@@ -13,7 +13,7 @@ description: |
 
 ## 정본 = edit_plan.json (edit-as-data)
 
-후반의 정본 아티팩트는 **선언적 편집 계획** `edit_plan.json`(`schemas/edit_plan.schema.json`)이다. 에이전트는 창작 결정(컷·트림·전환·자막·음악·납품본)을 **데이터로 기술**하고, 결정적 ffmpeg 실행기가 이를 렌더한다(ShortGPT의 편집 마크업 패턴). 이렇게 분리하면 렌더 실패·재편집이 계획 데이터의 수정으로 환원되고, 어느 지점에서든 재개된다. **계획을 확정받은 뒤에만 렌더한다.**
+후반의 정본 아티팩트는 **선언적 편집 계획** `edit_plan.json`(`schemas/edit_plan.schema.json`)이다. 에이전트는 창작 결정(컷·트림·전환·자막·음악·납품본)을 **데이터로 기술**하고, 결정적 ffmpeg 실행기가 이를 렌더한다(ShortGPT의 편집 마크업 패턴). **실행기는 플러그인 동봉 스크립트 `scripts/render_edit_plan.py`다** — `python3 scripts/render_edit_plan.py <edit_plan.json> --renders-dir <소재 경로> --out <출력> --qc-dir <QC 프레임 경로>` 한 줄로 정규화→트림(+freeze_tail)→경계 xfade→자막 번인→음악 믹스→라우드니스 2-pass→QC 프레임 추출까지 수행한다(스모크 테스트 검증 완료). 에이전트는 임의 ffmpeg 스크립트를 즉석에서 다시 쓰지 말고 이 실행기를 먼저 쓰고, 실행기가 지원하지 않는 특수 처리만 수동 ffmpeg로 보강한 뒤 그 내용을 edit_plan `notes`에 남긴다. 컷 판단이 갈릴 때는 Murch Rule of Six 가중(감정51>스토리23>리듬10>시선7>화면5>공간4 — storyboard-director 편집 문법 부록)을 따른다. 이렇게 분리하면 렌더 실패·재편집이 계획 데이터의 수정으로 환원되고, 어느 지점에서든 재개된다. **계획을 확정받은 뒤에만 렌더한다.**
 
 **버전드·멱등 렌더(v0.6.0).** edit_plan은 `schema_version`·`pipeline_version`을 갖고, **모든 렌더 파라미터를 `render` 블록에 명시**한다(암묵값 금지). 동일 edit_plan + 동일 소스 → **프레임 결정적 재렌더**(인코더 파라미터 고정, 컨테이너 타임스탬프만 예외). 재렌더는 **생성 재소비 0** — 소스 클립은 이미 있고 ffmpeg만 다시 돈다. 따라서 편집은 diff·재렌더·A/B가 자유롭다. **A/B 변형**은 `variants[]`에 base 대비 오버라이드(자막·음악·일부 트림)만 기술해 같은 소스로 다변형을 뽑는다(카피 A/B 등).
 

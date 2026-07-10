@@ -29,6 +29,15 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 | `/ms-pipeline [아이디어]` | 위 단계 일괄 실행 (게이트는 유지) |
 | `/ms-status` | 진행 상황 보고 (읽기 전용) |
 
+## v0.9.0 — 리서치 기반 종합 개편
+
+정전 이론(Murch Rule of Six, McKee 가치전환, Save the Cat 백분율 비트, Bordwell 180°/30°, YouTube ABCD·TikTok Creative Codes, EBU R128/R95)과 AI 생성 영상 생태계(star 상위 12 리포, 인용 순 논문 8건, 상업 사례)를 8개 관점 축으로 종합해 반영했다 — 축·가중 토론·반영 결정은 `docs/RESEARCH.md`.
+
+- **format-director(신규)**: 영화·광고·숏츠/릴스·롱폼 4개 포맷 프로파일 — 구조 비트·ASL·훅·브랜드 펄싱·세이프존·라우드니스 매트릭스. 포맷 규칙 > 영화 문법.
+- **scripts/render_edit_plan.py(신규)**: edit_plan.json의 결정적 ffmpeg 실행기(정규화→트림/freeze→xfade→자막→음악→라우드니스 2-pass→QC).
+- **aspect_variants/branches**: 비율 파생을 스키마 1급 개념으로 — 원본 라인 보존 + 비율별 숏 문법 이원화.
+- 편집 문법 부록(Murch 가중·30°·커버리지·가치전환), FLF 심도/샷사이즈 검증, last-frame 체이닝 금지, 히어로 숏 차등 N-후보, 프롬프트 오염 검증, user-run 실행 카드.
+
 ## 설치
 
 두 환경에 설치할 수 있다. **결론부터**: 기획→납품 렌더까지 **전체 파이프라인은 Claude Code**가 정답이고, **Claude Desktop은 기획·캐릭터·콘티·심사까지의 서브셋**이다(후반 ffmpeg 렌더는 Desktop 실행 환경에 없다). 아래 표로 먼저 감을 잡자.

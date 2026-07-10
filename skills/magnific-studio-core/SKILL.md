@@ -12,7 +12,10 @@ description: |
 
 ```
 기획(/ms-plan) → 캐릭터(/ms-characters) → 콘티(/ms-storyboard) → 영상(/ms-produce) → 후반(/ms-post)
+       ↑ 교차 계층: format-director(포맷 규칙 주입) · quality-reviewer(증거 기반 심사) · spaces-engineer(그래프 실행)
 ```
+
+포맷 규칙과 영화 문법이 충돌하면 **포맷 규칙이 우선**한다(format-director). 모든 생성 호출의 모델·프롬프트(리라이트 전후)·시드·비용은 manifest에 직렬화한다 — 어떤 산출물도 단독 재현 가능해야 한다(ComfyUI 재현성 철학).
 
 각 스테이지는 정확히 하나의 정본 아티팩트를 산출한다. 다음 스테이지는 정본 아티팩트만 신뢰하고, 대화 기억에 의존하지 않는다.
 

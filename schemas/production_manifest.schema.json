@@ -2,41 +2,85 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "production_manifest",
   "type": "object",
-  "required": ["project", "stage_status", "approved_by_user", "updated_at", "spaces", "shots"],
+  "required": [
+    "project",
+    "stage_status",
+    "approved_by_user",
+    "updated_at",
+    "spaces",
+    "shots"
+  ],
   "properties": {
-    "project": { "type": "string" },
-    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
-    "approved_by_user": { "type": "boolean" },
-    "stale": { "type": "boolean", "default": false },
-    "updated_at": { "type": "string", "format": "date-time" },
+    "project": {
+      "type": "string"
+    },
+    "stage_status": {
+      "enum": [
+        "draft",
+        "awaiting_approval",
+        "approved"
+      ]
+    },
+    "approved_by_user": {
+      "type": "boolean"
+    },
+    "stale": {
+      "type": "boolean",
+      "default": false
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "models": {
       "type": "object",
       "properties": {
-        "image": { "type": "string" },
-        "video": { "type": "string" }
+        "image": {
+          "type": "string"
+        },
+        "video": {
+          "type": "string"
+        }
       }
     },
     "cost": {
       "type": "object",
       "properties": {
-        "estimated_credits": { "type": "number" },
-        "approved_credits": { "type": "number" },
-        "spent_credits": { "type": "number" }
+        "estimated_credits": {
+          "type": "number"
+        },
+        "approved_credits": {
+          "type": "number"
+        },
+        "spent_credits": {
+          "type": "number"
+        }
       }
     },
     "spaces": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["scene_id", "space_id"],
+        "required": [
+          "scene_id",
+          "space_id"
+        ],
         "properties": {
-          "scene_id": { "type": "string" },
-          "space_id": { "type": "string" },
-          "web_url": { "type": "string" },
+          "scene_id": {
+            "type": "string"
+          },
+          "space_id": {
+            "type": "string"
+          },
+          "web_url": {
+            "type": "string"
+          },
           "anchor_frames": {
             "type": "object",
             "description": "camera position_id → 앵커 프레임 creation identifier",
-            "additionalProperties": { "type": "string" }
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       }
@@ -45,33 +89,71 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["shot_id", "status"],
+        "required": [
+          "shot_id",
+          "status"
+        ],
         "properties": {
-          "shot_id": { "type": "string" },
-          "status": { "enum": ["pending", "keyframes_ready", "running", "succeeded", "failed", "skipped"] },
-          "first_frame": { "$ref": "#/$defs/asset" },
-          "last_frame": { "$ref": "#/$defs/asset" },
-          "clip": { "$ref": "#/$defs/asset" },
-          "node_ids": { "type": "array", "items": { "type": "string" } },
+          "shot_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "keyframes_ready",
+              "running",
+              "succeeded",
+              "failed",
+              "skipped"
+            ]
+          },
+          "first_frame": {
+            "$ref": "#/$defs/asset"
+          },
+          "last_frame": {
+            "$ref": "#/$defs/asset"
+          },
+          "clip": {
+            "$ref": "#/$defs/asset"
+          },
+          "node_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "references_used": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "이 숏 키프레임 생성에 실제 인용된 캐릭터 reference_bank id(프로버넌스). 캐릭터가 등장하는 숏은 consistency_policy.enforce_citation에 따라 최소 min_citations개가 있어야 한다 — 비면 계약 위반."
           },
           "consistency_check": {
-            "enum": ["pass", "fail", "na", "pending"],
+            "enum": [
+              "pass",
+              "fail",
+              "na",
+              "pending"
+            ],
             "description": "키프레임의 캐릭터 일관성 심사 결과(review.keyframe.axes.character_consistency 요약). na=캐릭터 없음."
           },
           "review": {
             "type": "object",
-            "description": "자동 자기검수(quality-reviewer). 승인 게이트에 증거를 제공한다. 생성 스테이지는 review 없이 승인 요청 금지.",
-            "properties": {
-              "keyframe": { "$ref": "#/$defs/review" },
-              "clip": { "$ref": "#/$defs/review" }
-            }
+            "description": "quality-reviewer review 객체(축별 점수+verdict+원인층위). 승인 게이트 전 필수."
           },
-          "run_identifier": { "type": ["string", "null"] },
-          "failure_reason": { "type": ["string", "null"] }
+          "run_identifier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failure_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     },
@@ -80,23 +162,137 @@
       "items": {
         "type": "object",
         "properties": {
-          "kind": { "enum": ["tts", "music", "sfx"] },
-          "ref": { "type": "string", "description": "shot_id 또는 scene_id" },
-          "voice": { "type": ["string", "null"] },
-          "creation_identifier": { "type": ["string", "null"] },
-          "status": { "enum": ["pending", "succeeded", "failed"] }
+          "kind": {
+            "enum": [
+              "tts",
+              "music",
+              "sfx"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "description": "shot_id 또는 scene_id"
+          },
+          "voice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "creation_identifier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "succeeded",
+              "failed",
+              "used"
+            ]
+          }
         }
       }
     },
-    "final_video": { "$ref": "#/$defs/asset" }
+    "final_video": {
+      "$ref": "#/$defs/asset"
+    },
+    "branches": {
+      "type": "array",
+      "description": "비율/버전 브랜치별 노드·산출물 레지스트리. 원본 라인을 덮지 않고 병존시킨다(실전 규칙: 기존 생성물 보존 원칙).",
+      "items": {
+        "type": "object",
+        "required": [
+          "aspect",
+          "shots"
+        ],
+        "properties": {
+          "aspect": {
+            "type": "string"
+          },
+          "label_prefix": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "building",
+              "keyframes_ready",
+              "clips_ready",
+              "delivered"
+            ]
+          },
+          "shots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "shot_id",
+                "status"
+              ],
+              "properties": {
+                "shot_id": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "pending",
+                    "keyframes_ready",
+                    "running",
+                    "succeeded",
+                    "failed",
+                    "skipped"
+                  ]
+                },
+                "first_frame": {
+                  "$ref": "#/$defs/asset"
+                },
+                "last_frame": {
+                  "$ref": "#/$defs/asset"
+                },
+                "clip": {
+                  "$ref": "#/$defs/asset"
+                },
+                "node_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "review": {
+                  "type": "object",
+                  "description": "quality-reviewer 심사 결과"
+                },
+                "failure_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "$defs": {
     "asset": {
-      "type": ["object", "null"],
-      "required": ["creation_identifier"],
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "creation_identifier"
+      ],
       "properties": {
-        "creation_identifier": { "type": "string" },
-        "web_url": { "type": "string" }
+        "creation_identifier": {
+          "type": "string"
+        },
+        "web_url": {
+          "type": "string"
+        }
       }
     },
     "review": {
@@ -107,17 +303,74 @@
           "type": "object",
           "description": "축별 판정. 각 pass|revise|fail.",
           "properties": {
-            "brand_fit": { "enum": ["pass", "revise", "fail"] },
-            "character_consistency": { "enum": ["pass", "revise", "fail", "na"] },
-            "prompt_adherence": { "enum": ["pass", "revise", "fail"] },
-            "spatial_continuity": { "enum": ["pass", "revise", "fail"] },
-            "technical": { "enum": ["pass", "revise", "fail"] }
+            "brand_fit": {
+              "enum": [
+                "pass",
+                "revise",
+                "fail"
+              ]
+            },
+            "character_consistency": {
+              "enum": [
+                "pass",
+                "revise",
+                "fail",
+                "na"
+              ]
+            },
+            "prompt_adherence": {
+              "enum": [
+                "pass",
+                "revise",
+                "fail"
+              ]
+            },
+            "spatial_continuity": {
+              "enum": [
+                "pass",
+                "revise",
+                "fail"
+              ]
+            },
+            "technical": {
+              "enum": [
+                "pass",
+                "revise",
+                "fail"
+              ]
+            }
           }
         },
-        "verdict": { "enum": ["pass", "revise", "fail"] },
-        "cause_layer": { "enum": ["keyframe", "prompt", "model", "edit", "none"], "description": "revise/fail의 원인 층위 — 해당 층에서 고친다." },
-        "issues": { "type": "array", "items": { "type": "string" } },
-        "reviewed_by": { "enum": ["agent", "user"], "description": "agent=자동 자기검수, user=사용자 확인 승격." }
+        "verdict": {
+          "enum": [
+            "pass",
+            "revise",
+            "fail"
+          ]
+        },
+        "cause_layer": {
+          "enum": [
+            "keyframe",
+            "prompt",
+            "model",
+            "edit",
+            "none"
+          ],
+          "description": "revise/fail의 원인 층위 — 해당 층에서 고친다."
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewed_by": {
+          "enum": [
+            "agent",
+            "user"
+          ],
+          "description": "agent=자동 자기검수, user=사용자 확인 승격."
+        }
       }
     }
   }

@@ -2,50 +2,320 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "project_brief",
   "type": "object",
-  "required": ["project", "stage_status", "approved_by_user", "updated_at", "logline", "synopsis", "style", "duration_sec", "aspect_ratio", "scenes"],
+  "required": [
+    "project",
+    "stage_status",
+    "approved_by_user",
+    "updated_at",
+    "logline",
+    "synopsis",
+    "style",
+    "duration_sec",
+    "aspect_ratio",
+    "scenes",
+    "format_profile",
+    "purpose"
+  ],
   "properties": {
-    "project": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
-    "approved_by_user": { "type": "boolean" },
-    "stale": { "type": "boolean", "default": false },
-    "updated_at": { "type": "string", "format": "date-time" },
-    "logline": { "type": "string", "maxLength": 300 },
-    "synopsis": { "type": "string" },
+    "project": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "stage_status": {
+      "enum": [
+        "draft",
+        "awaiting_approval",
+        "approved"
+      ]
+    },
+    "approved_by_user": {
+      "type": "boolean"
+    },
+    "stale": {
+      "type": "boolean",
+      "default": false
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "logline": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "synopsis": {
+      "type": "string"
+    },
     "style": {
       "type": "object",
-      "required": ["visual"],
+      "required": [
+        "visual"
+      ],
       "properties": {
-        "visual": { "type": "string", "description": "예: cinematic, anime, 3D render" },
-        "tone": { "type": "string" },
-        "avoid": { "type": "array", "items": { "type": "string" } }
+        "visual": {
+          "type": "string",
+          "description": "예: cinematic, anime, 3D render"
+        },
+        "tone": {
+          "type": "string"
+        },
+        "avoid": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
-    "duration_sec": { "type": "integer", "minimum": 1 },
-    "aspect_ratio": { "enum": ["16:9", "9:16", "1:1", "4:3", "21:9"] },
-    "target_audience": { "type": "string" },
-    "budget_cap_credits": { "type": ["integer", "null"], "minimum": 0 },
+    "duration_sec": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "aspect_ratio": {
+      "enum": [
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "21:9"
+      ]
+    },
+    "target_audience": {
+      "type": "string"
+    },
+    "budget_cap_credits": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
     "preferred_models": {
       "type": "object",
       "properties": {
-        "image": { "type": ["string", "null"] },
-        "video": { "type": ["string", "null"] }
+        "image": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "video": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
-    "video_plan_notes": { "type": "string", "description": "Magnific video_plan 툴 결과 요약 (모델 추천, 클립 분할 계획)" },
+    "video_plan_notes": {
+      "type": "string",
+      "description": "Magnific video_plan 툴 결과 요약 (모델 추천, 클립 분할 계획)"
+    },
     "scenes": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["scene_id", "slugline", "summary"],
+        "required": [
+          "scene_id",
+          "slugline",
+          "summary",
+          "value_shift"
+        ],
         "properties": {
-          "scene_id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
-          "slugline": { "type": "string", "description": "예: INT. COFFEE SHOP - NIGHT" },
-          "summary": { "type": "string" },
-          "characters": { "type": "array", "items": { "type": "string" } },
-          "target_duration_sec": { "type": "integer" }
+          "scene_id": {
+            "type": "string",
+            "pattern": "^s[0-9]{2,}$"
+          },
+          "slugline": {
+            "type": "string",
+            "description": "예: INT. COFFEE SHOP - NIGHT"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "characters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "target_duration_sec": {
+            "type": "integer"
+          },
+          "value_shift": {
+            "type": "object",
+            "required": [
+              "from",
+              "to",
+              "mechanism"
+            ],
+            "description": "McKee 가치전환. from==to면 비사건 — 삭제/병합 검토 플래그.",
+            "properties": {
+              "from": {
+                "enum": [
+                  "+",
+                  "-"
+                ]
+              },
+              "to": {
+                "enum": [
+                  "+",
+                  "-"
+                ]
+              },
+              "mechanism": {
+                "enum": [
+                  "action",
+                  "revelation"
+                ]
+              }
+            }
+          }
         }
       }
+    },
+    "format_profile": {
+      "enum": [
+        "cinematic_short",
+        "commercial_30",
+        "shorts_reels",
+        "longform"
+      ],
+      "description": "포맷 프로파일(format-director 표). 구조 비트·ASL·훅·납품 규격을 결정한다. 포맷 규칙 > 영화 문법."
+    },
+    "purpose": {
+      "enum": [
+        "brand",
+        "activation"
+      ],
+      "description": "영상 목적(Binet&Field 60/40). brand=감정·기억 연결 극대화, activation=오퍼·CTA 중심 — 크리에이티브 규칙 분기."
+    },
+    "brand_assets": {
+      "type": "object",
+      "description": "독특한 브랜드 자산 매니페스트(Byron Sharp DBA). 대화 기억이 아니라 여기에 기록 — 모든 스테이지가 참조.",
+      "properties": {
+        "logo_path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "로고 파일 경로 또는 creation identifier(배경 제거본 권장)"
+        },
+        "brand_colors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "hex 코드. 예 #FF6A00"
+        },
+        "slogan": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "voice_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "보이스 규칙(경어체·표기 규칙 등)"
+        },
+        "banned_words": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "beat_map": {
+      "type": "array",
+      "description": "구조 비트의 백분율 배치 검증 기록(Save the Cat 축약 또는 훅-바디-CTA).",
+      "items": {
+        "type": "object",
+        "required": [
+          "beat",
+          "at_pct"
+        ],
+        "properties": {
+          "beat": {
+            "enum": [
+              "opening_image",
+              "hook",
+              "catalyst",
+              "break_into_two",
+              "midpoint",
+              "all_is_lost",
+              "break_into_three",
+              "cta",
+              "final_image"
+            ]
+          },
+          "at_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "scene_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "opening_image": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "첫 컷 서술 — final_image와 변화 전/후 거울쌍"
+    },
+    "final_image": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "끝 컷 서술 — opening_image의 거울상"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "const": "brand"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "required": [
+          "brand_assets"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "format_profile": {
+            "enum": [
+              "commercial_30",
+              "shorts_reels"
+            ]
+          }
+        },
+        "required": [
+          "format_profile"
+        ]
+      },
+      "then": {
+        "required": [
+          "beat_map"
+        ]
+      }
+    }
+  ]
 }
