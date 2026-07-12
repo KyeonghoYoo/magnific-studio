@@ -206,7 +206,8 @@
                   "slide_down",
                   "iris_open",
                   "iris_close",
-                  "clock_wipe"
+                  "clock_wipe",
+                  "blur_dissolve"
                 ]
               },
               "duration_ms": {

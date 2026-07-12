@@ -38,6 +38,12 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 - **aspect_variants/branches**: 비율 파생을 스키마 1급 개념으로 — 원본 라인 보존 + 비율별 숏 문법 이원화.
 - 편집 문법 부록(Murch 가중·30°·커버리지·가치전환), FLF 심도/샷사이즈 검증, last-frame 체이닝 금지, 히어로 숏 차등 N-후보, 프롬프트 오염 검증, user-run 실행 카드.
 
+## v1.4.0 — 파일럿 1 결함 환류 (렌더러 가드 + blur 전환)
+
+- **VO 오버런 가드**: 렌더러가 `voiceover.start_sec + VO 실측 길이`를 전환 겹침 반영 후 실효 타임라인과 대조해 잘림을 사전 경고(파일럿 1 "라이덜리" 말미 잘림 실증). post SKILL에 배치 산술 하드 룰.
+- **`blur_dissolve` 전환 신설**(xfade=hblur): 감정 페이오프/브랜드 카드 소프트 진입 — dip_to_white가 과할 때. 스키마·렌더러·editing-grammar 정합.
+- **drawtext 부재 환경 캡션 레시피**: Pillow PNG + overlay 2차 패스(오디오 copy) 표준화 + 실물 로고 flood-fill 합성 패턴.
+
 ## v1.3.0 — Magnific 자산 계층(Library-first) 하네스
 
 파일럿 1 실증 결함(캐릭터 3뷰를 Library에 등록하고도 front 시트 creation만 배선 → 3뷰 미기여, front 이중 가중)에서 승격된 횡단 계약.

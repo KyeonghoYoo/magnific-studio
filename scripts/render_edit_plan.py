@@ -39,6 +39,7 @@ TRANSITION_MAP = {
     "wipe_left": "wipeleft", "wipe_right": "wiperight",
     "slide_up": "slideup", "slide_down": "slidedown",
     "iris_open": "circleopen", "iris_close": "circleclose", "clock_wipe": "radial",
+    "blur_dissolve": "hblur",
 }
 LEGACY_TRANSITIONS = {  # v1 이름 → v2 이름 (경고 후 수용)
     "fade": "dissolve", "fadeblack": "fade_through_black", "fadewhite": "dip_to_white",
@@ -330,6 +331,11 @@ def main():
             if have_vo:
                 v_start = float(vo.get("start_sec", 0))
                 v_gain = float(vo.get("gain_db", 0))
+                # VO 오버런 가드 — 배치는 전환 겹침 반영 후의 실효 타임라인(total) 기준 (파일럿 1 실증: "라이덜리" 말미 잘림)
+                vo_dur = probe_dur(vsrc)
+                overrun = v_start + vo_dur - total
+                if overrun > 0.05:
+                    sys.stderr.write(f"[render][경고] VO 오버런 {overrun:.2f}s — start_sec {v_start} + VO {vo_dur:.2f}s > 실효 타임라인 {total:.2f}s (전환 겹침 반영 길이). 말미가 잘린다: start_sec을 {max(0, total - vo_dur - 0.2):.2f} 이하로 당기거나 마지막 숏을 늘려라\n")
                 tail = ",asplit=2[vok0][vomix]" if duck else "[vomix]"
                 ch = f"[{idx}:a]asetpts=PTS-STARTPTS,volume={v_gain}dB,adelay={int(v_start * 1000)}:all=1{tail}"
                 if duck:
