@@ -16,7 +16,7 @@ description: |
 
 ### Step 2 — 기획 문답
 
-`format-director` 스킬을 읽고, video_plan 결과의 열린 질문에 다음을 결합해 사용자에게 묻는다 (이미 답이 나온 항목은 다시 묻지 않는다):
+`format-director` 스킬과 `filmcraft/references/story-structure.md`·`emotion-recipes.md`를 읽고, video_plan 결과의 열린 질문에 다음을 결합해 사용자에게 묻는다 (이미 답이 나온 항목은 다시 묻지 않는다):
 
 - **format_profile** (cinematic_short / commercial_30 / shorts_reels / longform — format-director 표 참조) 및 파생 납품본 매트릭스
 - **purpose** — brand(감정·기억 연결 극대화) 또는 activation(오퍼·CTA 중심). Binet&Field 60/40 기준으로 안내
@@ -40,6 +40,19 @@ description: |
 - 전체 길이가 15초를 넘으면 씬/숏 분할이 클립 단위(모델 최대 길이)와 맞아떨어지도록 video_plan의 분할 계획을 따른다.
 - **2-티어 렌더 전략(대형 프로젝트)**: 총 숏이 많거나(20+) 예산이 민감하면, 저비용 모델·저해상도로 전 숏 애니메틱(러프 클립)을 먼저 만들어 편집 승인 후 승인 숏만 상위 품질로 최종 생성하는 계획을 브리프에 명시한다.
 
+### Step 3.5 — Visual Grammar Contract (시각 문법 계약) ★ v1.1 신규
+
+컨셉이 정해지면 **감독의 스타일 바이블**을 계약으로 확정한다 — 실제 프로덕션에서 DP·감독이 "이 영화는 35mm, 느린 push-in만, 나트륨 팔레트"처럼 룩을 잠그는 것과 같다. `visual_grammar`(required)를 filmcraft 사전 값으로 채운다:
+
+- **palette**(dominant/subordinate/accent + harmony + 금지색) 및 `color_script`(비트별 채도·온도 아크 — 예: 저점을 향해 탈색, 해방에서 채도 복귀), `location_palettes`
+- **lighting_bible** — 기본 ratio(대비 클래스)·색온도·시간대·**motivation_doctrine**(motivated 기본)
+- **lens_bible** — 사이즈 계열별 기본 mm(FF 환산)·기본 조리개·기본 심도
+- **look** — film_stock(포트라/씨네스틸/알렉사…)·lens_character(구면/아나모픽/빈티지)·grain·diffusion — 구체 기술 명사가 최강 토큰이다("cinematic" 같은 추상어는 단독 금지)
+- **camera_bible** — 기본 support·settle 필수·movement_rules(1무브 법칙 + 프로젝트 금지 무브)
+- **prohibitions** — 상업물이면 greeking_required(브랜드 마크는 실물 합성만), flop_forbidden, baked_text_forbidden
+
+감정 톤이 정해진 프로젝트는 `emotion-recipes.md`의 부서 합의 레시피에서 기본값을 가져온다. 이 계약은 콘티(씬 조명·무브 선택)→프롬프트 프로젝션→심사(grammar 축)까지 전 하류가 상속한다 — **프로젝트 단위 스타일 메모리의 실체**다.
+
 ### Step 4 — 정본 아티팩트 확정
 
-선택된 컨셉을 `schemas/project_brief.schema.json`에 맞춰 `project_brief.json`으로 저장한다. **스키마 필수 필드**: `format_profile`·`purpose`(required), 씬마다 `value_shift {from,to,mechanism}`(required — from==to면 비사건이므로 저장 전에 해소). 권장 필드: `brand_assets`(로고·컬러 hex·슬로건·보이스 규칙·금지어), `beat_map`(비트 백분율 배치 기록), `opening_image`/`final_image`(거울쌍). 산문 지시가 아니라 이 필드들이 하류 스테이지의 계약이다. 요약을 보여주고 승인받으면 `approved_by_user: true`, `stage_status: "approved"`로 갱신하고 다음 단계(/ms-characters)를 안내한다.
+선택된 컨셉을 `schemas/project_brief.schema.json`에 맞춰 `project_brief.json`으로 저장한다. **스키마 필수 필드**: `format_profile`·`purpose`·`visual_grammar`(required), 씬마다 `value_shift {from,to,mechanism}`(required — from==to면 비사건이므로 저장 전에 해소). **가치전환 체이닝**: 인접 씬의 극성은 종류가 다르고 진폭은 미드포인트까지 상승해야 한다(플랫라인 방지 — story-structure.md). 권장 필드: `brand_assets`(로고·컬러 hex·슬로건·보이스 규칙·금지어 — hex는 프롬프트가 아니라 LUT·참조 이미지로만 쓰인다), `beat_map`(백분율 배치; 비트↔숏 매핑 고아 검증 — 모든 비트는 ≥1 숏), `opening_image`/`final_image`(거울쌍). 산문 지시가 아니라 이 필드들이 하류 스테이지의 계약이다. 요약을 보여주고 승인받으면 `approved_by_user: true`, `stage_status: "approved"`로 갱신하고 다음 단계(/ms-characters)를 안내한다.

@@ -38,8 +38,8 @@
     },
     "schema_version": {
       "type": "string",
-      "default": "1.0",
-      "description": "edit_plan EDL 스키마 버전. 재렌더·마이그레이션 호환성 판단용."
+      "default": "2.0",
+      "description": "edit_plan EDL 스키마 버전. v2: 전환 어휘가 편집실 언어로 개편(렌더러가 ffmpeg로 번역), duration_ms, music_cues/sfx/ambience, color.show_lut, opening/end fade 설정화. v1 마이그레이션: fade→dissolve, dissolve→dissolve(경고: 구 의미는 노이즈 디더 — 이제 크로스디졸브), fadeblack→fade_through_black, fadewhite→dip_to_white, wipeleft→wipe_left, wiperight→wipe_right, slideup→slide_up, slidedown→slide_down, circleopen→iris_open, radial→clock_wipe."
     },
     "pipeline_version": {
       "type": "string",
@@ -52,6 +52,16 @@
         "fps": {
           "type": "integer",
           "default": 30
+        },
+        "opening_fade_ms": {
+          "type": "integer",
+          "default": 500,
+          "description": "첫 클립 머리 페이드-인(블랙에서). 0이면 없음."
+        },
+        "end_fade_ms": {
+          "type": "integer",
+          "default": 1000,
+          "description": "마지막 클립 꼬리 페이드-아웃(블랙으로). 0이면 없음."
         },
         "width": {
           "type": "integer"
@@ -181,29 +191,41 @@
           },
           "transition_in": {
             "type": "object",
-            "description": "앞 컷과의 전환. 첫 컷은 생략/none.",
+            "description": "앞 컷과의 전환 — 편집실 언어(렌더러가 ffmpeg로 번역: soft_cut/dissolve→xfade=fade, fade_through_black→fadeblack, dip_to_white→fadewhite, wipe_*→wipe*, slide_*→slide*, iris_open→circleopen, clock_wipe→radial). ffmpeg의 노이즈 디더 'dissolve'(dither_dissolve)는 생성 클립에서 지지직거려 노출하지 않는다. 의미론: soft_cut=기술적 보정(첫 프레임 톤 팝·유사 점프컷 완화 — 시간 의미 없음, 막 구두점 예약에서 면제, 단 헤드 트림이 우선), dissolve=시간 경과(길이가 생략의 무게), fade_through_black=막/챕터 구두점(예약 규칙 유지), wipe/iris/clock=양식적(스스로를 드러냄 — 의도 시만).",
             "properties": {
               "type": {
                 "enum": [
                   "cut",
-                  "fade",
+                  "soft_cut",
                   "dissolve",
-                  "fadeblack",
-                  "fadewhite",
-                  "wipeleft",
-                  "wiperight",
-                  "slideup",
-                  "slidedown",
-                  "circleopen",
-                  "radial"
-                ],
-                "description": "매끈한 전환은 fade(크로스디졸브) 우선. ffmpeg dissolve는 노이즈 디더라 AI 생성 클립에서 지지직거림 — 그레인 의도 아니면 피한다."
+                  "fade_through_black",
+                  "dip_to_white",
+                  "wipe_left",
+                  "wipe_right",
+                  "slide_up",
+                  "slide_down",
+                  "iris_open",
+                  "iris_close",
+                  "clock_wipe"
+                ]
+              },
+              "duration_ms": {
+                "type": "integer",
+                "description": "전환 길이(ms — 정본 단위, 24fps 프레임 정본): soft_cut 250–500(기본 300 = 6–12f@24) · dissolve 1000–2000(기본 1000 = 정전 24프레임 디졸브), 대형 생략 3000–5000 · fade/dip 500–2000(= 12–48f@24). 씬 내부 dissolve>500ms는 경고."
               },
               "duration": {
                 "type": "number",
-                "description": "전환 길이(초). xfade duration."
+                "description": "(deprecated, 초 단위 — v1 호환. duration_ms 우선)"
               }
             }
+          },
+          "hidden_join": {
+            "enum": [
+              "whip",
+              "object_wipe",
+              "dark_frame"
+            ],
+            "description": "인비저블 컷 이음(스티치드 원테이크) 주석 — 렌더러는 cut으로 처리하고, 후반·그레이딩이 이 지점을 알아야 한다(이음 미기록 시 재그레이드에서 팝 발생). 납품 카피는 '단일 테이크'가 아니라 '연속 테이크로 설계'라고 쓴다."
           },
           "freeze_tail": {
             "type": "number",
@@ -295,12 +317,210 @@
         }
       }
     },
+    "color": {
+      "type": "object",
+      "description": "그레이드. show_lut은 렌더러가 최종 vf 체인에 lut3d로 적용(전 시퀀스 균일 — 생성 클립 드리프트 마스킹의 최우선 도구). 씬별 트림(eq)은 현재 수동 ffmpeg(로드맵) — 컬러 스크립트가 강한 프로젝트는 show LUT을 보수적으로.",
+      "properties": {
+        "show_lut": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": ".cube 파일 경로(renders_dir 상대 또는 절대). null이면 미적용."
+        }
+      }
+    },
     "audio": {
       "type": "object",
       "required": [
         "music"
       ],
       "properties": {
+        "music_cues": {
+          "type": "array",
+          "description": "명명된 음악 큐(M1, M2…) — 스포팅 원칙: 큐마다 in/out과 '왜 여기서'를 기록, wall-to-wall 금지(단 15–60s 음악 주도 숏폼은 단일 큐가 정상 — cinematic_short/longform에서만 경고). 존재 시 legacy music 객체보다 우선. 라이트모티프는 같은 스템의 변형 재사용(derived_from+transform은 출처 메타데이터 — source는 이미 변형된 스템 파일을 가리킨다. 재프롬프트 금지).",
+          "items": {
+            "type": "object",
+            "required": [
+              "cue_id",
+              "source",
+              "in"
+            ],
+            "properties": {
+              "cue_id": {
+                "type": "string",
+                "description": "M1, M2…"
+              },
+              "source": {
+                "type": "string",
+                "description": "로컬 경로(renders_dir 상대 가능)"
+              },
+              "in": {
+                "type": "number",
+                "description": "타임라인 시작(초)"
+              },
+              "out": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "타임라인 끝(초). null=클립 끝 또는 타임라인 끝까지"
+              },
+              "source_in": {
+                "type": "number",
+                "default": 0,
+                "description": "소스 파일 내 시작점(초)"
+              },
+              "diegesis": {
+                "enum": [
+                  "score",
+                  "source",
+                  "trans_diegetic"
+                ],
+                "default": "score",
+                "description": "score=비디제틱(덕킹만). source=디제틱(원근 EQ/리버브 필요 — 수동 처리 후 스템 반영). trans_diegetic=2스템 크로스페이드 기법."
+              },
+              "provenance": {
+                "enum": [
+                  "generated",
+                  "licensed"
+                ],
+                "default": "generated"
+              },
+              "license": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "provenance=licensed면 필수 — 비면 납품 차단"
+              },
+              "gain_db": {
+                "type": "number",
+                "default": 0
+              },
+              "fade_in": {
+                "type": "number",
+                "default": 0.5
+              },
+              "fade_out": {
+                "type": "number",
+                "default": 1.5
+              },
+              "why": {
+                "type": "string",
+                "description": "스포팅 근거 한 줄(≥60s 프로젝트 필수)"
+              },
+              "derived_from": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "라이트모티프 원 큐 id"
+              },
+              "transform": {
+                "type": "object",
+                "description": "스템 파생 기록(pitch/tempo) — 적용은 스템 준비 단계, source가 결과 파일.",
+                "properties": {
+                  "pitch_semitones": {
+                    "type": "number"
+                  },
+                  "tempo_ratio": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sfx": {
+          "type": "array",
+          "description": "하드 이펙트/폴리 큐(스톡 소싱). 배송 게이트: 화면에 충돌·보행이 보이는데 music-only면 QC FAIL — storyboard shots[].sound[]는 반드시 여기 목적지를 갖는다(무단 유실 금지).",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "source",
+              "at_sec"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "at_sec": {
+                "type": "number",
+                "description": "타임라인 배치(초) — 컷/임팩트 프레임에 정렬"
+              },
+              "gain_db": {
+                "type": "number",
+                "default": 0
+              },
+              "shot_id": {
+                "type": "string",
+                "description": "storyboard sound[] 큐 추적"
+              }
+            }
+          }
+        },
+        "ambience": {
+          "type": "array",
+          "description": "location별 앰비언스 베드(스톡 소싱). 무음 방지 — populated/exterior 씬의 완전 무음은 믹스 오류로 읽힌다.",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "in"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "in": {
+                "type": "number"
+              },
+              "out": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gain_db": {
+                "type": "number",
+                "default": -18
+              },
+              "fade_in": {
+                "type": "number",
+                "default": 0.5
+              },
+              "fade_out": {
+                "type": "number",
+                "default": 0.5
+              }
+            }
+          }
+        },
+        "beat_snap": {
+          "type": "object",
+          "description": "컷-비트 정렬 정책(저작 단계 메타 — librosa 컷포인트 선택이 소비, 렌더러는 무시). 독트린: 컷은 그림(액션/시선/사운드)에서, 비트 싱크는 텐트폴 ≤3개(훅·전환·CTA)만. snap 전역은 hype/comedy 계열만 — 전 컷 비트 고정은 beat_locked_cutting(드라마에서 의도치 않은 희극성).",
+          "properties": {
+            "mode": {
+              "enum": [
+                "snap",
+                "offset",
+                "off"
+              ],
+              "description": "기본: comedy/hype/montage→snap, cinematic/brand/longform→offset"
+            },
+            "offset_ms": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 150,
+              "default": 90
+            }
+          }
+        },
         "music": {
           "type": "object",
           "properties": {
@@ -347,6 +567,16 @@
             "source": {
               "type": "string",
               "description": "로컬 VO 경로 또는 creation identifier. generate=true면 audio_tts 결과가 채워진다."
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "narration",
+                "internal_monologue",
+                "character_sync"
+              ],
+              "default": "narration",
+              "description": "VO 성격 태그. narration=연결 조직(기본) · internal_monologue=내적 독백(관객+해당 인물만 들림 — 비다이제틱 덕킹 + close/dry 원근 처리) · character_sync=인물 발화 동기(립싱크/퍼포먼스). sound-music.md D8."
             },
             "script": {
               "type": "string",
@@ -622,6 +852,30 @@
                 "fail",
                 "na"
               ]
+            },
+            "dynamics": {
+              "enum": [
+                "pass",
+                "warn",
+                "na"
+              ],
+              "description": "LRA(EBU R128 표준 지표) 기반 — 잠정 하한 4LU 미만이면 warn(스펙 통과≠좋은 믹스). cinematic_short/longform/brand만 적용, shorts_reels는 na."
+            },
+            "sfx_coverage": {
+              "enum": [
+                "pass",
+                "fail",
+                "na"
+              ],
+              "description": "화면에 충돌/보행이 보이는데 music-only면 fail(무게감 부재 = AI 티). storyboard sound[] 큐의 목적지 존재 검증 포함."
+            },
+            "color_consistency": {
+              "enum": [
+                "pass",
+                "revise",
+                "na"
+              ],
+              "description": "샷 매칭/그레이드 균일성(signalstats 근사 + 육안)."
             },
             "transition_artifacts": {
               "enum": [

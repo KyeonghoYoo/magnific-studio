@@ -17,6 +17,26 @@ description: |
 
 포맷 규칙과 영화 문법이 충돌하면 **포맷 규칙이 우선**한다(format-director). 모든 생성 호출의 모델·프롬프트(리라이트 전후)·시드·비용은 manifest에 직렬화한다 — 어떤 산출물도 단독 재현 가능해야 한다(ComfyUI 재현성 철학).
 
+## filmcraft — 기법 사전 (v1.1)
+
+`skills/filmcraft/`는 전 부서 영화 기법의 **정본 사전**이다. 매 스테이지는 추론 대신 사전을 참조한다:
+
+| 스테이지 | 먼저 읽는 레퍼런스 |
+|---|---|
+| 기획 | story-structure, emotion-recipes (+ production-design, color-grading의 world/palette 절) |
+| 캐릭터 | production-design(의상·실루엣), lenses-optics(포트레이트) |
+| 콘티 | shot-grammar, camera-movement, lighting, directing-mise-en-scene, emotion-recipes |
+| 영상 | prompting(프롬프트 프로젝션 — 필수), camera-movement, lighting, animation-motion, vfx-compositing(하이브리드), model-matrix(캠페인마다 재검증) |
+| 후반 | editing-grammar, sound-music, color-grading |
+| 심사 | 해당 부서 파일의 QA 열 + prompting의 pre-flight lint |
+
+**횡단 하드 룰(사전에서 승격):**
+1. **통제 어휘** — 아티팩트의 카메라·조명·전환 필드는 filmcraft canonical 값만. 금지 별칭(push_in, slow_push_in, tracking, orbit, steadicam…)은 저장 전에 해소한다.
+2. **프롬프트 프로젝션** — 프롬프트 문자열은 아티팩트에 저장하지 않는다. produce 시점에 prompting.md의 결정적 테이블로 아티팩트에서 렌더한다(아티팩트=모델-프리, 모델 사실=capability 플래그+model-matrix).
+3. **빈 토큰 차단(pre-flight lint, 생성 전 0원)** — masterpiece/8k/highly detailed/artstation/award-winning/octane render 등 금지. "cinematic"은 구체 기술 명사(필름스톡·기종·mm·f값·조명 패턴·비율) 동반 시만. 부정 구문(no/without/avoid+명사) 금지 — 긍정 재구성.
+4. **씬 조명 잠금** — 씬 lighting 구조체에서 렌더된 조명 문장을 그 씬 모든 키프레임 프롬프트에 byte-identical 주입. 숏 오버라이드는 사유 기록.
+5. **진실 표기** — 스티치드 원테이크를 "single take"로 표기 금지("연속 테이크로 설계"). 좌우 반전(flop)으로 방향 오류를 고치지 않는다(재생성 또는 뉴트럴 인서트).
+
 각 스테이지는 정확히 하나의 정본 아티팩트를 산출한다. 다음 스테이지는 정본 아티팩트만 신뢰하고, 대화 기억에 의존하지 않는다.
 
 | 스테이지 | 정본 아티팩트 | 스키마 |

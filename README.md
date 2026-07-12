@@ -38,6 +38,15 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 - **aspect_variants/branches**: 비율 파생을 스키마 1급 개념으로 — 원본 라인 보존 + 비율별 숏 문법 이원화.
 - 편집 문법 부록(Murch 가중·30°·커버리지·가치전환), FLF 심도/샷사이즈 검증, last-frame 체이닝 금지, 히어로 숏 차등 N-후보, 프롬프트 오염 검증, user-run 실행 카드.
 
+## v1.1.0 — filmcraft: 영화 기법 정본 사전 + 하네스 통합
+
+"매번 추론"을 "정본 사전 참조"로 바꿨다. 12개 부서 리서치(웹 검증) → **3관점 공격적 대심 토론**(학술 순수주의 vs 현장 실무 vs AI 파이프라인 — 37개 안건 + 신규 충돌 19건) → 수석 중재 판정 → 집필 → 정량 교차검증의 파이프라인으로 만들어졌다. 과정 기록은 `docs/RESEARCH-CRAFT.md`.
+
+- **`skills/filmcraft/`(신규)**: 15개 레퍼런스 — shot-grammar(8단 사이즈·기하 앵글·프레이밍/기능 분리), camera-movement(1무브 법칙·dolly⇄zoom 포크·foreground_anchor), lighting(씬 조명 계약·비율→프록시 정본 테이블), lenses-optics(FF 환산·필름스톡 토큰), directing(180° 축 기계화·플레이어블 액션), editing-grammar(soft_cut/dissolve 3층 의미론), color-grading(show LUT+씬 트림), sound-music(스포팅·라이트모티프 동일 스템 법·비트 고정 방지), vfx/animation(12원칙→AI 결함 수정표), production-design, story-structure, **emotion-recipes**(감정→전 부서 합의 레시피 22종), **prompting**(프롬프트 프로젝션 — 아티팩트는 모델-프리, 프롬프트는 결정적 테이블로 렌더), **model-matrix**(날짜 있는 모델 능력표 — 규범에서 모델명 추방).
+- **스키마 v2**: storyboard에 `scenes[]`(조명 플롯·180° 축의 1급 거주지), movement 객체(4축), framing/function 분리, screen_direction/gaze_target, lens_mm(FF 환산); project_brief에 **visual_grammar 계약**(required — 감독 스타일 바이블); edit_plan 전환 어휘를 편집실 언어로 개편(`soft_cut`/`dissolve`/`fade_through_black` — ffmpeg 노이즈 디더 dissolve는 피커에서 제거), music_cues/sfx/ambience + 라이선스 게이트.
+- **렌더러 v2**: 편집실 어휘→xfade 번역층, duration_ms, 다중 요소 오디오 amix, show LUT(lut3d), 머리/꼬리 페이드 설정화 — v1 플랜 하위호환(드라이런 검증).
+- **하드 룰 승격**: 씬 조명 문장 byte-identical 주입(#1 AI 실패 봉쇄), 이동 무브 foreground_anchor 필수(시차 없는 달리=줌 렌더 방지), 감정 비트=MCU+플레이어블 액션, SFX 배송 게이트(가시 임팩트에 music-only 금지 — '무게 없음' AI 티 차단), 빈 토큰 차단 린트(masterpiece/8k/artstation — "cinematic"은 구체 기술 명사 동반 시만), FLF 합법조건=동일 카메라 포지션, conform_from_source(체이닝 금지 정식화).
+
 ## 설치
 
 두 환경에 설치할 수 있다. **결론부터**: 기획→납품 렌더까지 **전체 파이프라인은 Claude Code**가 정답이고, **Claude Desktop은 기획·캐릭터·콘티·심사까지의 서브셋**이다(후반 ffmpeg 렌더는 Desktop 실행 환경에 없다). 아래 표로 먼저 감을 잡자.

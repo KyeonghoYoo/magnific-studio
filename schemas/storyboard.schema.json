@@ -1,305 +1,214 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "storyboard",
+  "description": "콘티 정본(v2 — filmcraft 통제 어휘). 카메라·조명·연속성은 filmcraft 사전의 canonical 값만 사용한다. 프롬프트 문자열은 여기 저장하지 않는다 — 산출은 produce 단계의 프롬프트 프로젝션(filmcraft/references/prompting.md)이 담당.",
   "type": "object",
-  "required": [
-    "project",
-    "stage_status",
-    "approved_by_user",
-    "updated_at",
-    "shots"
-  ],
+  "required": ["project", "stage_status", "approved_by_user", "updated_at", "scenes", "shots"],
   "properties": {
-    "project": {
-      "type": "string"
-    },
-    "stage_status": {
-      "enum": [
-        "draft",
-        "awaiting_approval",
-        "approved"
-      ]
-    },
-    "approved_by_user": {
-      "type": "boolean"
-    },
-    "stale": {
-      "type": "boolean",
-      "default": false
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time"
+    "project": { "type": "string" },
+    "stage_status": { "enum": ["draft", "awaiting_approval", "approved"] },
+    "approved_by_user": { "type": "boolean" },
+    "stale": { "type": "boolean", "default": false },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "schema_version": { "type": "string", "default": "2.0", "description": "storyboard 스키마 버전. v1(플랫 movement enum, scenes 없음) → v2 마이그레이션: slow_push_in→{dolly,in,slow}, pull_back→{dolly,out}, handheld→{static,support:handheld}, orbit→{arc,arc_degrees:360}, crane→방향 필수." },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "description": "씬 레벨 계약(신규 v2). 조명 플롯·180° 축·팔레트는 씬에 한 번 쓰고 숏은 참조한다 — 숏별 재기술(패러프레이즈)은 결함. 씬 조명 문장은 해당 씬 모든 키프레임 프롬프트에 byte-identical 주입된다.",
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "lighting"],
+        "properties": {
+          "scene_id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
+          "type": { "enum": ["normal", "montage_sequence"], "default": "normal", "description": "montage_sequence=시간압축 몽타주(1–3s 숏, 음악 주도)" },
+          "cut_sync": { "enum": ["free", "motion", "beat_grid"], "default": "free", "description": "편집 리듬 힌트. beat_grid는 hype/comedy 계열만(사운드 사전 beat-snap 독트린)." },
+          "axis": {
+            "type": "object",
+            "description": "180° 축. 지오그래피/마스터 숏이 축을 그린다. A·B가 함께 나오는 모든 숏은 a_side를 유지 — 합법 교차(뉴트럴 숏/이동 중 교차/컷어웨이 경유/피사체가 축을 다시 그림) 시에만 변경, decision_log 기록.",
+            "properties": {
+              "established_by_shot_id": { "type": "string" },
+              "a": { "type": "string", "description": "characters.json key" },
+              "b": { "type": "string" },
+              "a_side": { "enum": ["left", "right"] },
+              "note": { "type": "string" }
+            }
+          },
+          "lighting": {
+            "type": "object",
+            "required": ["time_of_day", "key_direction", "key_quality", "ratio", "contrast_proxy"],
+            "description": "씬 조명 플롯(잠금 단위). 상세 어휘·proxy 정본 테이블은 filmcraft/references/lighting.md. key_class(high/low-key)는 ratio에서 파생되는 QA 전용 개념 — 필드도 프롬프트도 아니다.",
+            "properties": {
+              "time_of_day": { "enum": ["dawn", "golden_hour", "day", "overcast", "blue_hour", "night", "interior_day", "interior_night"] },
+              "key_direction": { "enum": ["front", "front_left", "front_right", "side_left", "side_right", "back_left", "back_right", "top", "under", "ambient"] },
+              "key_quality": { "enum": ["hard", "soft"] },
+              "ratio": { "enum": ["flat_1_1", "mild_2_1", "standard_4_1", "low_key_8_1", "extreme_16_1"] },
+              "contrast_proxy": { "type": "string", "description": "프롬프트에 들어가는 문장 — lighting.md 정본 ratio→proxy 테이블에서 그대로 가져온다(창작 금지). 숫자 비율은 프롬프트 금지." },
+              "color_temp_k": { "type": "integer", "minimum": 1500, "maximum": 20000 },
+              "color_note": { "type": "string", "description": "Kelvin의 자연어 gloss. 프로젝션은 Kelvin+gloss를 함께 방출." },
+              "pattern": { "enum": ["none", "rembrandt", "loop", "split", "butterfly", "broad", "short", "rim", "silhouette"], "default": "none" },
+              "motivation": { "type": ["string", "null"], "description": "빛의 그럴듯한 출처(창/램프/네온…). 프랙티컬이 광원이면 'the ONLY light source, casting light onto…' 형태로." },
+              "exposure_bias": { "enum": ["bright", "neutral", "dark"], "default": "neutral", "description": "밝기 의도 — ratio(대비 구조)와 별개 축." }
+            }
+          },
+          "palette_note": { "type": ["string", "null"], "description": "brief의 color_script/location palette에 대한 씬 오버라이드(있을 때만)." },
+          "lighting_override_policy": { "type": "string", "description": "숏 단위 조명 오버라이드는 사유를 여기 또는 decision_log에 기록해야 한다." }
+        }
+      }
     },
     "shots": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": [
-          "shot_id",
-          "scene_id",
-          "camera",
-          "variation_type",
-          "characters",
-          "first_frame_desc",
-          "motion_desc",
-          "duration_sec"
-        ],
+        "required": ["shot_id", "scene_id", "camera", "variation_type", "characters", "first_frame_desc", "motion_desc", "duration_sec"],
         "properties": {
-          "shot_id": {
-            "type": "string",
-            "pattern": "^s[0-9]{2,}_sh[0-9]{2,}$"
-          },
-          "scene_id": {
-            "type": "string"
-          },
+          "shot_id": { "type": "string", "pattern": "^s[0-9]{2,}_sh[0-9]{2,}$" },
+          "scene_id": { "type": "string", "description": "scenes[].scene_id 참조 — 씬 조명·축을 상속" },
+          "beat": { "type": "string", "description": "이 숏이 복무하는 beat_map 비트(고아 비트 검증용)" },
           "camera": {
             "type": "object",
-            "required": [
-              "shot_size",
-              "angle",
-              "movement",
-              "position_id"
-            ],
+            "required": ["shot_size", "angle", "movement", "position_id"],
             "properties": {
               "shot_size": {
-                "enum": [
-                  "extreme_wide",
-                  "wide",
-                  "full",
-                  "medium",
-                  "medium_close_up",
-                  "close_up",
-                  "extreme_close_up"
-                ]
+                "enum": ["extreme_wide", "wide", "full", "medium_full", "medium", "medium_close_up", "close_up", "extreme_close_up"],
+                "description": "컷라인 정의는 shot-grammar.md. medium_full=허벅지 중간(cowboy/american은 별칭). 씬 내 인접 숏 2단 초과 점프는 플래그."
               },
               "angle": {
-                "enum": [
-                  "eye_level",
-                  "high",
-                  "low",
-                  "overhead",
-                  "dutch"
-                ]
+                "enum": ["eye_level", "low", "high", "overhead", "underneath", "bird_eye", "worm_eye"],
+                "description": "기하 정의(shot-grammar.md): overhead=90° 직하(근접), underneath=90° 직상, bird_eye=고도 부감, worm_eye=지면 앙각+원근 과장."
               },
+              "dutch_deg": { "type": "integer", "minimum": 0, "maximum": 45, "default": 0, "description": "롤(캔티드) — angle과 직교. 로우앵글+더치 동시 표현 가능. 5–15 미묘 / 15–45 노골." },
+              "framing": { "enum": ["single", "two_shot", "group", "empty_frame", "ots", "pov"], "default": "single", "description": "프레임 안에 누가 있는가(카운트 기준). two_shot=정확히 2인." },
+              "dirty": { "type": "boolean", "default": false, "description": "single/ots에서 상대의 일부가 프레임에 남는가. 씬 내에서 선택(및 어깨 방향)을 일관 유지." },
+              "function": { "enum": ["none", "establishing", "master", "insert", "cutaway", "reaction", "transition"], "default": "none", "description": "편집 역할(프레임만 봐서는 판별 불가). establishing/insert/cutaway는 기본 stock 후보. master는 씬의 지오그래피 기준 프레임." },
+              "pov_of": { "type": ["string", "null"], "description": "framing=pov일 때 필수 — 시점 소유 캐릭터 key(해당 캐릭터는 프레임에 없음)" },
               "movement": {
-                "enum": [
-                  "static",
-                  "pan_left",
-                  "pan_right",
-                  "tilt_up",
-                  "tilt_down",
-                  "dolly_in",
-                  "dolly_out",
-                  "slow_push_in",
-                  "pull_back",
-                  "handheld",
-                  "orbit",
-                  "crane"
-                ]
+                "type": "object",
+                "required": ["base"],
+                "description": "숏당 정확히 1개(1무브 법칙). 유효 방향·검증 규칙·리스크 티어는 camera-movement.md. 금지 별칭(push_in/pull_back/slow_push_in/tracking/orbit/steadicam/gimbal…)은 저장 전에 해소.",
+                "properties": {
+                  "base": { "enum": ["static", "pan", "tilt", "dolly", "truck", "pedestal", "crane", "arc", "zoom", "dolly_zoom", "roll", "whip_pan", "crash_zoom"] },
+                  "direction": { "enum": ["left", "right", "up", "down", "in", "out", "cw", "ccw"], "description": "base별 유효 집합: pan/truck/whip_pan/arc→left|right, tilt/pedestal/crane→up|down, dolly/zoom/dolly_zoom/crash_zoom→in|out, roll→cw|ccw, static→생략" },
+                  "speed": { "enum": ["slow", "normal", "fast"], "default": "normal", "description": "static/whip_pan/crash_zoom은 속도 내장 — 생략" },
+                  "support": { "enum": ["locked", "handheld", "stabilized", "drone"], "default": "locked" },
+                  "subject_relation": { "enum": ["none", "follow", "lead"], "default": "none" },
+                  "arc_degrees": { "type": "integer", "minimum": 30, "maximum": 360, "description": "base=arc일 때 필수. 120 초과는 경고+포스트 폴백 필요(지오메트리 붕괴)." },
+                  "foreground_anchor": { "type": "string", "description": "dolly/truck 필수(없으면 모델이 줌으로 렌더 — 시차 부재). pedestal/crane/arc는 강력 권장(WARN) — 개방/공중 프레임은 전경면이 없을 수 있어 배경면 시차 노트로 대체 가능." },
+                  "parallax_note": { "type": "string", "description": "pedestal/crane/arc에서 foreground_anchor를 생략할 때의 시차 설명(배경면 전단 등)." },
+                  "intent_gloss": { "type": "string", "description": "비규범 연출 의도 주석(push in/reveal/escort/withdraw 등) — enum이 아니라 산문." }
+                }
               },
-              "lens": {
-                "type": "string",
-                "description": "예: 24mm, 50mm, 85mm"
+              "lens_mm": { "type": "integer", "minimum": 8, "maximum": 800, "description": "풀프레임 환산 정수(전역 규칙). v1의 자유 문자열 lens 대체." },
+              "dof": { "enum": ["shallow", "medium", "deep"], "description": "ots/dirty는 shallow 자동 방출(프로젝션)." },
+              "composition_tags": {
+                "type": "array",
+                "maxItems": 3,
+                "items": { "enum": ["rule_of_thirds", "centered_symmetry", "leading_lines", "frame_in_frame", "negative_space", "depth_staged", "foreground_occlusion"] },
+                "description": "rule_of_thirds ⊕ centered_symmetry 상호배타. golden_ratio는 태그가 아님(사전 참조)."
               },
-              "position_id": {
-                "type": "string",
-                "description": "물리적 카메라 포지션 그룹 키. 예: cam01"
-              }
+              "position_id": { "type": "string", "description": "물리적 카메라 포지션 그룹 키. 예: cam01" }
             }
           },
+          "screen_direction": { "enum": ["left", "right", "toward_camera", "away_from_camera", "neutral"], "description": "피사체 이동/시선의 화면 방향. 이동·시선이 있는 숏은 필수. neutral=온액시스(합법 축 교차의 힌지). 여정 시퀀스는 동기화된 온스크린 반전 전까지 방향 유지." },
+          "gaze_target": { "type": ["string", "null"], "description": "to_camera | off_left | off_right | off_up | off_down | at:<character_key> | none. 시선 각도 수치는 사용하지 않는다(비검증 수치 금지). 상호 응시(A at:B ∧ B at:A)는 반대 screen_direction." },
           "variation_type": {
-            "enum": [
-              "small",
-              "medium",
-              "large"
-            ],
-            "description": "small=첫프레임만+FF2V, medium/large=첫+끝프레임+FLF2V"
+            "enum": ["small", "medium", "large"],
+            "description": "렌더 비용 라벨(연출 라벨 아님 — 감정 판단은 shot_size/function으로). small=FF 1장→I2V. medium/large=FF+LF→FLF2V, 단 FLF 합법 조건: FF와 LF가 동일 카메라 포지션(shot_size·angle·lens_mm·dof 동일). 구도/포커스가 바뀌는 변화는 FLF가 아니라 ①숏 분할 또는 ②FF-only+무브로 표현한다(와이드↔클로즈업 FLF 페어는 워핑 실증으로 금지)."
           },
-          "characters": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "characters.json의 key 참조"
-          },
-          "first_frame_desc": {
-            "type": "string",
-            "description": "정적 스냅샷. 진행형 동작 금지"
-          },
-          "last_frame_desc": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "variation_type=small이면 null"
-          },
-          "motion_desc": {
-            "type": "string",
-            "description": "카메라 무브먼트 + 인물 동작. 캐릭터는 appearance_phrase로 지칭"
-          },
+          "characters": { "type": "array", "items": { "type": "string" }, "description": "characters.json key 참조. 프롬프트에서는 {{char:key}} 플레이스홀더 — 해소는 프로젝션(참조 배선 시 모델 네이티브 태그, motion_desc는 항상 외형 문구)." },
+          "first_frame_desc": { "type": "string", "description": "정적 스냅샷. 진행형 동작 금지. 조명 문장은 여기 쓰지 않는다(씬 lighting에서 주입)." },
+          "last_frame_desc": { "type": ["string", "null"], "description": "variation_type=small이면 null. FLF 합법 조건(동일 카메라 포지션) 준수." },
+          "motion_desc": { "type": "string", "description": "카메라 무브(movement 객체의 프로젝션) + 인물 동작 1~2개. 캐릭터는 항상 외형 문구로 지칭." },
           "dialogue": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": [
-                "speaker",
-                "line"
-              ],
-              "properties": {
-                "speaker": {
-                  "type": "string"
-                },
-                "emotion": {
-                  "type": "string"
-                },
-                "line": {
-                  "type": "string"
-                }
-              }
+              "required": ["speaker", "line"],
+              "properties": { "speaker": { "type": "string" }, "emotion": { "type": "string" }, "line": { "type": "string" } }
             }
           },
-          "sound": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
+          "sound": { "type": "array", "items": { "type": "string" }, "description": "효과음·환경음 큐. 후반에서 edit_plan.audio.sfx/ambience로 반드시 목적지를 갖는다(무단 유실 금지 — QC 검증)." },
+          "physics_risk": { "type": "boolean", "default": false, "description": "충돌/착지/접촉 포함 숏 — 추가 QA + 컷어웨이 사전 계획(물리 표현은 스타일 신호일 뿐)." },
           "generation_strategy": {
-            "enum": [
-              "generative",
-              "stock",
-              "hybrid"
-            ],
+            "enum": ["generative", "stock", "hybrid"],
             "default": "generative",
-            "description": "소재 생성 방식. generative=키프레임 생성(히어로·캐릭터·감정 비트), stock=Magnific 스톡 대체(캐릭터·브랜드 식별자 없는 설정/B롤/인서트 — 비용·시간 절감), hybrid=스톡 배경/플레이트 + 생성 전경. 캐릭터가 있으면 pure stock 불가(hybrid 또는 generative)."
+            "description": "소재 전략. function이 establishing/insert/cutaway이고 캐릭터·브랜드 식별자가 없으면 stock이 기본 후보."
           },
           "stock": {
             "type": "object",
-            "description": "generation_strategy가 stock/hybrid일 때 스톡 소싱 지시.",
             "properties": {
-              "query": {
-                "type": "string",
-                "description": "stock_search 검색어"
-              },
-              "orientation": {
-                "type": "string",
-                "description": "가로/세로/정사각 비율 힌트"
-              },
-              "media": {
-                "enum": [
-                  "photo",
-                  "video"
-                ],
-                "default": "video"
-              },
-              "creation_identifier": {
-                "type": "string",
-                "description": "stock_to_creation으로 확정된 스톡 creation id"
-              }
+              "query": { "type": "string" },
+              "orientation": { "type": "string" },
+              "media": { "enum": ["photo", "video"], "default": "video" },
+              "creation_identifier": { "type": "string" }
             }
           },
           "duration_sec": {
             "type": "number",
             "minimum": 1,
-            "maximum": 15
-          }
+            "maximum": 15,
+            "description": "타임라인 의도 길이. 생성 길이는 핸들 포함: gen_duration ≈ duration_sec + 0.5(헤드) + 0.3(테일) 이상의 모델 합법 길이(produce에서 model_profile.legal_durations로 확정). 비트 검증은 타임라인 길이 합산."
+          },
+          "notes": { "type": "string" }
         },
         "allOf": [
           {
-            "if": {
-              "properties": {
-                "variation_type": {
-                  "const": "small"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "last_frame_desc": {
-                  "type": "null"
-                }
-              }
-            },
-            "else": {
-              "required": [
-                "last_frame_desc"
-              ],
-              "properties": {
-                "last_frame_desc": {
-                  "type": "string"
-                }
-              }
-            }
+            "if": { "properties": { "variation_type": { "const": "small" } } },
+            "then": { "properties": { "last_frame_desc": { "type": "null" } } },
+            "else": { "required": ["last_frame_desc"], "properties": { "last_frame_desc": { "type": "string" } } }
+          },
+          {
+            "if": { "properties": { "camera": { "properties": { "framing": { "const": "pov" } }, "required": ["framing"] } }, "required": ["camera"] },
+            "then": { "required": ["pov_of"] }
+          },
+          {
+            "if": { "properties": { "camera": { "properties": { "movement": { "properties": { "base": { "const": "arc" } }, "required": ["base"] } }, "required": ["movement"] } }, "required": ["camera"] },
+            "then": { "properties": { "camera": { "properties": { "movement": { "required": ["arc_degrees"] } } } } }
+          },
+          {
+            "if": { "properties": { "camera": { "properties": { "movement": { "properties": { "base": { "enum": ["dolly", "truck"] } }, "required": ["base"] } }, "required": ["movement"] } }, "required": ["camera"] },
+            "then": { "properties": { "camera": { "properties": { "movement": { "required": ["foreground_anchor"] } } } } }
           }
         ]
       }
     },
     "aspect_variants": {
       "type": "array",
-      "description": "비율 파생 브랜치(1급 개념). 비율 파생은 크롭이 아니라 재구도다 — 세로 등 다른 비율은 숏 문법이 달라질 수 있으므로 오버라이드를 데이터로 기술한다.",
+      "description": "비율 파생 브랜치(1급 개념). 비율 파생은 크롭이 아니라 재구도 — 숏 문법이 달라질 수 있다. 세로 재구도는 축과 화면 방향이 원본과 다를 수 있으므로 per-variant axis/screen_direction 오버라이드가 1급이다(실증: 측면 병주 투샷 → 후방 추적 = Z축, 좌우 이동 없음).",
       "items": {
         "type": "object",
-        "required": [
-          "aspect"
-        ],
+        "required": ["aspect"],
         "properties": {
-          "aspect": {
-            "enum": [
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:5",
-              "21:9"
-            ]
-          },
-          "strategy": {
-            "enum": [
-              "native",
-              "blur_pad",
-              "pad",
-              "center_crop",
-              "auto_reframe"
-            ],
-            "default": "native",
-            "description": "native=재구도 재생성(최선)"
-          },
-          "label_prefix": {
-            "type": "string",
-            "description": "Space 노드 이름 프리픽스. 예 [9:16]"
+          "aspect": { "enum": ["16:9", "9:16", "1:1", "4:5", "21:9"] },
+          "strategy": { "enum": ["native", "blur_pad", "pad", "center_crop", "auto_reframe"], "default": "native" },
+          "label_prefix": { "type": "string" },
+          "axis_overrides": {
+            "type": "array",
+            "description": "씬별 축 재정의(재구도로 축이 바뀔 때).",
+            "items": {
+              "type": "object",
+              "required": ["scene_id"],
+              "properties": {
+                "scene_id": { "type": "string" },
+                "axis": { "type": "object" },
+                "note": { "type": "string" }
+              }
+            }
           },
           "shot_overrides": {
             "type": "array",
-            "description": "기본 숏 대비 달라지는 것만 기술(구도·모션·전용 프롬프트). 미기재 숏은 기본 정의를 비율만 바꿔 사용.",
+            "description": "기본 숏 대비 달라지는 것만 기술. screen_direction 오버라이드 포함 가능.",
             "items": {
               "type": "object",
-              "required": [
-                "shot_id"
-              ],
+              "required": ["shot_id"],
               "properties": {
-                "shot_id": {
-                  "type": "string"
-                },
-                "camera": {
-                  "type": "object"
-                },
-                "first_frame_desc": {
-                  "type": "string"
-                },
-                "last_frame_desc": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "motion_desc": {
-                  "type": "string",
-                  "description": "비율 전용 모션이 필요하면 기술(공유 모션과 분리)"
-                },
-                "notes": {
-                  "type": "string"
-                }
+                "shot_id": { "type": "string" },
+                "camera": { "type": "object" },
+                "screen_direction": { "enum": ["left", "right", "toward_camera", "away_from_camera", "neutral"] },
+                "first_frame_desc": { "type": "string" },
+                "last_frame_desc": { "type": ["string", "null"] },
+                "motion_desc": { "type": "string" },
+                "notes": { "type": "string" }
               }
             }
           }

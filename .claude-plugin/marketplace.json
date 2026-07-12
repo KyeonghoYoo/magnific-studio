@@ -11,8 +11,8 @@
     {
       "name": "magnific-studio",
       "source": "./",
-      "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획→캐릭터→콘티→영상→후반 5단계 파이프라인",
-      "version": "0.8.0"
+      "description": "Magnific MCP Spaces 기반 영상 제작 하네스 — 기획→캐릭터→콘티→영상→후반 5단계 + filmcraft 영화 기법 정본 사전(통제 어휘·프롬프트 프로젝션·비주얼 그래머 계약)",
+      "version": "1.1.0"
     }
   ]
 }

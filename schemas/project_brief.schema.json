@@ -14,7 +14,8 @@
     "aspect_ratio",
     "scenes",
     "format_profile",
-    "purpose"
+    "purpose",
+    "visual_grammar"
   ],
   "properties": {
     "project": {
@@ -190,6 +191,120 @@
         "activation"
       ],
       "description": "영상 목적(Binet&Field 60/40). brand=감정·기억 연결 극대화, activation=오퍼·CTA 중심 — 크리에이티브 규칙 분기."
+    },
+    "visual_grammar": {
+      "type": "object",
+      "required": ["palette", "lighting_bible", "lens_bible", "camera_bible"],
+      "description": "프로젝트 시각 문법 계약(스타일 바이블) — 실제 프로덕션의 룩북/쇼 바이블에 해당. 모델-프리(모델명 금지 — 모델 사실은 production_manifest.model_profile). 하류 전 스테이지가 이 블록을 verbatim 참조하며, 위반은 quality-reviewer grammar 축에서 심사된다. 어휘 정본: skills/filmcraft/references/.",
+      "properties": {
+        "design_concept": { "type": "string", "description": "월드를 통일하는 단일 메타포(예: '성당 같은 병원')" },
+        "palette": {
+          "type": "object",
+          "required": ["dominant", "accent"],
+          "properties": {
+            "dominant": { "type": "string" },
+            "subordinate": { "type": "string" },
+            "accent": { "type": "string" },
+            "harmony": { "enum": ["complementary", "split_complementary", "analogous", "triadic", "monochromatic_accent"] },
+            "forbidden": { "type": "array", "items": { "type": "string" }, "description": "팔레트 오염 방지 — 긍정 재구성으로 프롬프트에 반영" }
+          }
+        },
+        "color_script": {
+          "type": "array",
+          "description": "비트별 팔레트 아크(Pixar 컬러 스크립트 관행) — 드리프트 워크어라운드의 정본.",
+          "items": {
+            "type": "object",
+            "required": ["beat", "palette_target"],
+            "properties": {
+              "beat": { "type": "string" },
+              "palette_target": { "type": "string" },
+              "saturation": { "enum": ["desaturated", "muted", "baseline", "saturated"] },
+              "temperature": { "enum": ["warm", "neutral", "cool"] }
+            }
+          }
+        },
+        "location_palettes": { "type": "object", "additionalProperties": { "type": "string" }, "description": "장소별 컬러 시그니처 — 등장 시마다 verbatim 재주입" },
+        "lighting_bible": {
+          "type": "object",
+          "required": ["default_ratio", "motivation_doctrine"],
+          "properties": {
+            "default_time_of_day": { "enum": ["dawn", "golden_hour", "day", "overcast", "blue_hour", "night", "interior_day", "interior_night"] },
+            "default_key_quality": { "enum": ["hard", "soft"] },
+            "default_ratio": { "enum": ["flat_1_1", "mild_2_1", "standard_4_1", "low_key_8_1", "extreme_16_1"] },
+            "default_color_temp_k": { "type": "integer" },
+            "motivation_doctrine": { "enum": ["motivated", "stylized"], "description": "motivated=모든 빛에 그럴듯한 출처(기본). stylized=비동기 조명 허용(선언적 선택)." }
+          }
+        },
+        "lens_bible": {
+          "type": "object",
+          "required": ["default_mm_by_size"],
+          "properties": {
+            "format_note": { "type": "string", "default": "all mm full-frame equivalent" },
+            "default_mm_by_size": {
+              "type": "object",
+              "description": "숏 사이즈 계열별 기본 초점거리(FF 환산). 예: {\"wide\":24,\"medium\":35,\"close\":85}",
+              "additionalProperties": { "type": "integer" }
+            },
+            "aperture_default": { "type": "number" },
+            "dof_default": { "enum": ["shallow", "medium", "deep"] }
+          }
+        },
+        "look": {
+          "type": "object",
+          "properties": {
+            "film_stock": { "enum": ["none", "kodak_portra_400", "kodak_vision3_500t", "cinestill_800t", "kodak_trix", "ilford_hp5", "super8", "arri_alexa"], "default": "none" },
+            "lens_character": { "enum": ["spherical", "anamorphic", "vintage"], "default": "spherical" },
+            "grain": { "enum": ["none", "fine_35mm", "coarse_16mm", "heavy_8mm"], "default": "none", "description": "게이지 텍스처만(색·리크·게이트위브가 포함된 super8 룩은 film_stock 소관)" },
+            "diffusion": { "enum": ["none", "light", "medium", "heavy"], "default": "none" }
+          }
+        },
+        "camera_bible": {
+          "type": "object",
+          "required": ["movement_rules"],
+          "properties": {
+            "default_support": { "enum": ["locked", "handheld", "stabilized", "drone"], "default": "locked" },
+            "settle_required": { "type": "boolean", "default": true },
+            "movement_rules": {
+              "type": "object",
+              "properties": {
+                "max_moves_per_shot": { "type": "integer", "const": 1, "description": "1무브 법칙(저작 시 항상 1 — 병합은 produce 최적화)" },
+                "banned_bases": { "type": "array", "items": { "type": "string" }, "description": "이 프로젝트에서 금지하는 무브(예: [\"whip_pan\",\"crash_zoom\"])" }
+              }
+            }
+          }
+        },
+        "grade": {
+          "type": "object",
+          "properties": {
+            "show_lut": { "type": ["string", "null"], "description": "시퀀스 공용 LUT 경로(.cube) — 렌더러가 lut3d로 균일 적용(구현됨). 씬별 eq 트림은 현재 수동 ffmpeg(로드맵) — 수행 시 edit_plan notes에 기록." },
+            "correction_before_grade": { "type": "boolean", "default": true }
+          }
+        },
+        "motion_bible": {
+          "type": "object",
+          "properties": {
+            "easing_required": { "type": "boolean", "default": true },
+            "moving_hold_required": { "type": "boolean", "default": true },
+            "gesture_economy_max": { "type": "integer", "default": 2 },
+            "shutter_look": { "enum": ["natural_180", "crisp_staccato"], "default": "natural_180" }
+          }
+        },
+        "sound_bible": {
+          "type": "object",
+          "properties": {
+            "diegesis_default": { "enum": ["score", "source"], "default": "score" },
+            "lra_floor": { "type": ["number", "null"], "description": "다이내믹스 QA 하한(LU) — 미설정 시 프로파일 기본(잠정 4LU, cinematic/longform/brand만)" }
+          }
+        },
+        "prohibitions": {
+          "type": "object",
+          "properties": {
+            "greeking_required": { "type": "boolean", "default": false, "description": "상업물: 미승인 브랜드 마크 노출 금지(긍정 재구성 프롬프트 + QC 게이트)" },
+            "flop_forbidden": { "type": "boolean", "default": true, "description": "좌우 반전 금지(텍스트·손방향·핸들 방향·참조뱅크 무효화)" },
+            "baked_text_forbidden": { "type": "boolean", "default": true, "description": "생성 클립 내 텍스트 금지 — 전 텍스트는 후반 번인" }
+          }
+        }
+      }
     },
     "brand_assets": {
       "type": "object",
