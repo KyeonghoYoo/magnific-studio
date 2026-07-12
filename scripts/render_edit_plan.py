@@ -120,8 +120,14 @@ def build_pieces(plan, renders_dir, work, render):
                     parts.append("colorbalance=" + ":".join(f"{k}={cb[k]}" for k in cb))
         return parts
 
+    KNOWN_TL_KEYS = {"shot_id", "clip_id", "in", "out", "speed", "transition_in",
+                     "freeze_tail", "notes", "label"}
     lens, srcs = [], []
     for i, e in enumerate(tl):
+        unknown = set(e) - KNOWN_TL_KEYS
+        if unknown:
+            sys.stderr.write(f"[render][경고] timeline[{i}]({e.get('shot_id')}) 미인식 키 무시됨: "
+                             f"{sorted(unknown)} — 소스 지정은 clip_id + source.clips[] 매핑이 정본\n")
         src = find_source(e, renders_dir, plan)
         seg = os.path.join(work, f"t{i:02d}.mp4")
         vf = nf
