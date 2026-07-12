@@ -1,6 +1,6 @@
 {
   "name": "magnific-studio",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Magnific MCP Spaces 기반 종합 영상 제작 에이전트 — 기획·캐릭터·콘티·영상·후반 5단계 + filmcraft 기법 정본 사전(15개 부서 레퍼런스: 숏·카메라·조명·렌즈·편집·컬러·사운드·연출·미술·VFX·애니·프롬프트 프로젝션 + 감정 레시피). 3관점 대심 토론(학술/실무/AI)으로 정합한 통제 어휘를 스키마 enum으로 강제, 씬 조명 잠금·1무브 법칙·비주얼 그래머 계약 내장. 정전 이론(Murch·McKee·Bordwell)+실전 2편 검증",
   "author": {
     "name": "ykh6242"

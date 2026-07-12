@@ -11,3 +11,6 @@ desktop/_stage/
 desktop/dist/
 desktop/.build-manifest.json
 __pycache__/
+
+# 프로젝트 워크스페이스 (대용량 렌더 포함 — 회고는 docs/에 영속화)
+.studio/

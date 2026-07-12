@@ -38,6 +38,17 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 - **aspect_variants/branches**: 비율 파생을 스키마 1급 개념으로 — 원본 라인 보존 + 비율별 숏 문법 이원화.
 - 편집 문법 부록(Murch 가중·30°·커버리지·가치전환), FLF 심도/샷사이즈 검증, last-frame 체이닝 금지, 히어로 숏 차등 N-후보, 프롬프트 오염 검증, user-run 실행 카드.
 
+## v1.3.0 — Magnific 자산 계층(Library-first) 하네스
+
+파일럿 1 실증 결함(캐릭터 3뷰를 Library에 등록하고도 front 시트 creation만 배선 → 3뷰 미기여, front 이중 가중)에서 승격된 횡단 계약.
+
+- **core: 자산 계층 인덱스** — Library 7카테고리(character·product·locations·style·color·template·flows·agent/context)를 스테이지·참조 타입·소유 스킬로 매핑. 하드 룰 4: 인벤토리 우선(`library_list`) · 정체성 배선은 Library id 필수 · 중복 참조 금지 · brandKit 정직 캐비앗.
+- **character-director**: 동반 프롭 product 등록 + 배선 계약(3뷰 creation은 citation_ids 보존용, 배선은 Library로).
+- **planning-director**: Step 3.4 자산화 검토(color/style 등록 제안) + 인벤토리 확인.
+- **storyboard-director**: 반복 장소 → locations 자산 후보 마킹.
+- **production-director**: 참조 배선 우선순위(Library > 구도 앵커 > raw creation) 명문화.
+- **spaces-engineer**: Library 배선 실증 경로 + **편집 에이전트 부작용 실증 3건**(무관 노드 화면비 변형·SFX 반전·프롬프트 잔재 주입) → 편집 후 대상 외 노드 전수 대조 의무.
+
 ## v1.2.0 — 후반 렌더러 확장 + 렉시콘 후속 검증
 
 v1.1.0 검증 게이트(99.3%)가 적립한 백로그 7건 완주. 렌더러는 합성 자산 실렌더 스모크(ffmpeg 8.1)로 검증.

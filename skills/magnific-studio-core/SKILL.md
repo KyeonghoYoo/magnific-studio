@@ -47,6 +47,27 @@ description: |
 | 영상 | `production_manifest.json` | `schemas/production_manifest.schema.json` |
 | 후반 | `edit_plan.json` + 최종 납품 파일(들) + manifest 갱신 | `schemas/edit_plan.schema.json` |
 
+## Magnific 자산 계층 — Library-first 원칙 (횡단 하드 룰)
+
+Magnific의 재사용 자산 표면을 전 스테이지가 인덱싱하고 활용한다. **재사용 시각 정체성은 creation이 아니라 Library 자산이 정본**이다.
+
+| Library 카테고리 | 무엇 | 등록 시점 | 생성 참조 타입 | 소유 스킬 |
+|---|---|---|---|---|
+| `character` | 인물·동물 정체성 (3뷰 시트 포함) | /ms-characters | `references{type:character}` | character-director |
+| `product`(element) | 제품·소품·차량·바이크 | /ms-characters(동반 프롭) · /ms-plan(브랜드 제품) | `type:product` | character-director |
+| `locations` | 반복 등장 장소 플레이트 | /ms-storyboard에서 식별 → /ms-produce에서 등록 | `type:locations` | production-director |
+| `style` | 룩 LoRA / 스타일 포토 | /ms-plan에서 `visual_grammar.look` 잠금 시 검토 | `type:style` | planning-director |
+| `color` | 팔레트 자산 (`visual_grammar.palette` 공유·재사용) | /ms-plan | (Seedance video: `type:color`) | planning-director |
+| `template`·brandKit | 온-브랜드 생성 (`images_generate`의 `brandKitId`/`templateSlug`) | 브랜드 캠페인 반복 시 | 파라미터 | planning-director |
+| flows (`flows_list/run/wait`) | 저장된 그래프 재실행 — 반복 파이프라인 | 동일 구조 재생산 시 검토 | — | spaces-engineer |
+| `agent`·`context` | 생성 보조 프리셋 | 현재 활용 규칙 없음 — 인덱스만 | — | — |
+
+**하드 룰:**
+1. **인벤토리 우선**: 각 스테이지 시작 시 `library_list`(type 지정)로 기존 자산을 확인한다 — 있는 자산을 재생성하지 않는다(중복 `library_create` 금지, 수정은 `library_edit`).
+2. **배선은 Library id로**: 캐릭터·제품·장소가 등장하는 생성 노드의 정체성 참조는 **반드시 Library 자산 id**로 배선한다. raw creation 참조가 허용되는 경우는 정확히 둘 — ①키프레임 간 **구도 연속성 앵커**(Library에 없는 정보), ②일회성 참조. (실증: 파일럿 1에서 front 시트 creation만 와이어 → Library의 3뷰가 정체성 계산에 미기여하는 결함.)
+3. **중복 참조 금지**: Library 자산에 이미 포함된 이미지를 creation으로 병행 배선하지 않는다 — 같은 정보의 이중 가중은 특정 뷰 편향을 만든다(실증: front 이중 가중).
+4. brandKitId 대응 list 도구는 현재 MCP 표면에 없다 — 브랜드 정합은 Library `color`/`template` + 실물 로고 합성으로 달성하고, sqid를 이미 알 때만 `brandKitId`를 쓴다.
+
 ## 워크스페이스 규약
 
 프로젝트 루트는 현재 작업 디렉토리의 `.studio/<project-slug>/`이다. slug는 소문자-하이픈.

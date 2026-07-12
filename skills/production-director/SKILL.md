@@ -31,17 +31,27 @@ description: |
 
 **숏 생성 전략 분기(먼저 확인).** 숏의 `generation_strategy`가 `stock`이면 키프레임을 생성하지 않고 `stock_search`→(`stock_show` 확인)→`stock_to_creation`으로 스톡 소재를 소싱해 클립 노드에 배선한다(캐릭터 없음 확인 — 있으면 콘티 결함). `hybrid`면 스톡을 배경/플레이트로 두고 전경(캐릭터)만 생성한다. `stock.creation_identifier`를 manifest에 기록하고, **비용 견적에서 stock 숏은 제외**한다. 아래 절차는 `generative`(및 hybrid의 생성 전경)에 적용된다:
 
-1. **캐릭터 일관성 계약 강제(하드).** 숏의 `characters[]`가 비어있지 않고 `consistency_policy.enforce_citation=true`면, 각 캐릭터의 `reference_bank`에서 `reference_selection` 휴리스틱으로 참조를 골라 키프레임 노드에 **반드시 배선**한다(최소 `min_citations`개, `primary_ref` 포함). 인용 없이는 생성하지 않는다 — 텍스트 프롬프트만으로 정체성을 지어내면 드리프트한다. 배선한 참조 id는 manifest의 해당 숏 `references_used`에 기록한다.
+1. **캐릭터 일관성 계약 강제(하드) + 참조 배선 우선순위.** 숏의 `characters[]`가 비어있지 않고 `consistency_policy.enforce_citation=true`면, 각 캐릭터의 `reference_bank`에서 참조를 골라 키프레임 노드에 **반드시 배선**한다(최소 `min_citations`개, `primary_ref` 포함). 배선 우선순위(core 자산 계층): **① Library 자산(character/product/locations/style — 정체성·환경) ② 키프레임 앵커(구도 연속성 — Library에 없는 정보) ③ raw creation(일회성만)**. `primary_ref`가 Library 자산이면 반드시 Library id로 배선한다 — front 시트 creation만 와이어하면 3뷰가 정체성 계산에 미기여한다(파일럿 1 실증). Library에 든 이미지의 creation 병행 배선 금지(이중 가중). 인용 없이는 생성하지 않는다. 배선한 참조 id는 manifest의 해당 숏 `references_used`에 기록한다.
+1-0. **동일 포지션 연속 컷은 단일 클립으로 생성한다(하드).** 같은 position_id의 인접 숏들(예: POV 접근 컷 + POV 스침 컷)을 각각 FLF 클립으로 만들면 **클립 경계 = 컷 지점에서 카메라 리그 불일치가 반드시 노출**된다(실증: 파일럿 1 — 중간 키프레임 리그 이탈로 컷 점프). 대신 **구간 전체를 하나의 클립**(모델 합법 길이 내, Seedance 4–15s)으로 생성하고 — FLF는 구간의 첫/끝 프레임, 중간 비트는 프롬프트의 구간 서술("First half: … Second half: …") — **콘티의 컷은 후반에서 그 클립을 트림해 재현**한다. 클립 내부는 카메라가 물리적으로 연속이라 튈 수 없다. 구간이 모델 한도를 넘을 때만 분할하고, 분할 경계는 리그 대조 검수를 통과해야 한다. (멀티숏 기능 지원 모델이면 multishot이 대안 — Step 3.5)
+1-1. **환경 플레이트 먼저(씬 단위).** 한 장소에 2개 이상 숏이 있는 씬은 캐릭터 키프레임보다 먼저 **환경 마스터**를 확정한다: 씬 첫 키프레임(또는 빈 환경 플레이트)을 생성·심사·채택 → `library_create(type: locations)` → 씬 나머지 키프레임 전부에 참조 배선 + 프롬프트에 "the same [환경] as the reference location". 조명 문장·팔레트만으로는 형태(도로·차선·수종·지형·계절)가 잠기지 않는다(파일럿 1 실증 — storyboard-director 환경 플레이트 독트린).
 2. **N-후보는 차등 배분한다(실전 표준).** 기본은 **단발 생성 → quality-reviewer 심사 → 원인 층위 분류 재시도**. variation 2~3장 비교 선택은 **히어로 숏에만** 쓴다(캐릭터 기준 이미지, 감정 클라이맥스, 엔드카드 — AniMaker의 중요도 차등 탐색, 상업 사례 채택률 ~4%의 교훈은 '선별'이지 '전 숏 N배 생성'이 아니다). 같은 씬의 키프레임들은 **같은 참조 세트로 연속 생성**해 배치 일관성을 얻는다(StoryDiffusion 원리의 운영 모사). 심사 결과는 manifest 숏 `review.keyframe`(축·verdict·cause_layer·issues)에 기록한다(`consistency_check`는 character_consistency 축 요약):
    - **character_consistency** — 이목구비·체형·헤어가 characters.json 시트 및 reference_bank와 일치
    - **spatial_continuity** — 인물 배치(좌/우), 배경 구도가 인접 숏과 모순 없음
    - **prompt_adherence** — first_frame_desc의 내용이 실제로 구현됨 (+ brand_fit·technical)
    character_consistency가 fail이면 `drift_action`(앵커+Library 참조 강화 재생성)을 적용한다. 채택 후보는 승인 게이트에서 review 요약과 함께 제시한다.
 3. 채택 프레임의 creation identifier를 manifest에 기록. 탈락 사유는 decision_log에.
-4. 같은 camera.position_id의 첫 채택 프레임은 그 포지션의 **앵커 프레임**으로 지정 — manifest `spaces[].anchor_frames`와 **해당 캐릭터 `reference_bank.anchor_frames`에 누적**하고, 이후 같은 포지션 숏의 참조 풀에 항상 포함한다(뱅크가 프로덕션과 함께 성장).
+4. **포지션 락(앵커 파생) — 같은 position_id는 독립 T2I 금지(하드).** 같은 camera.position_id의 첫 채택 프레임을 그 포지션의 **앵커 프레임**으로 지정하고(manifest `spaces[].anchor_frames` + 캐릭터 `reference_bank.anchor_frames`에 누적), **이후 같은 포지션의 모든 키프레임은 앵커를 참조로 강배선 + 프롬프트 서두에 "Keep the EXACT same camera position, framing, [전경 리그 요소 열거] as the reference frame — only the described change differs:" 지시로 편집 파생**한다. 각 키프레임을 독립 T2I로 만들면 같은 포지션인데 핸들바 높이·계기판·미러 위치가 매번 미세 발산해 컷이 뚝뚝 튄다(실증: 파일럿 1 POV 4키프레임). 항상 승인 원본에서 파생하므로 conform_from_source와 정합 — 클립 끝프레임 체이닝과 혼동 금지.
 5. **키프레임에 없는 주체를 비디오 모델이 만들게 하지 마라.** 첫 프레임이 빈 장면이면 등장 인물·차량의 정체성을 텍스트만으로 지어내 캐릭터 일관성이 깨진다(실증: 빈 주차장 진입 클립에서 헬멧·인물·복장·바이크 전부 붕괴). "프레임 밖에서 진입" 연출이 필요하면 주체가 **가장자리를 막 통과하는 순간**을 첫 프레임으로 잡아 픽셀 정체성을 프레임 안에 심는다.
 6. **FLF(첫+끝 프레임) 페어의 합법 조건 = 동일 카메라 포지션(하드).** FF와 LF는 shot_size·angle·lens_mm·dof가 같아야 한다(스키마 v2 variation_type 정의와 일치). 채택 전 나란히 놓고 육안 대조 — 와이드↔클로즈업 쌍은 의도치 않은 카메라 무브를, 보케↔팬포커스 쌍은 원치 않는 포커스 애니메이션을 모델이 발명한다(실증 워핑 2건). 불일치하면 LF 재생성을 반복하지 말고 **FF-only + 잠금 카메라 모션 프롬프트("locked framing, only the subject moves")로 강등**한다. 액션 과적도 워핑 유발 — 클립당 동작 1~2개(gesture economy). **렌더 후 flf_adherence 기계 검사**: 클립 마지막 프레임을 공급한 LF와 SSIM/pHash 대조 — 임계 미달이면 서빙 경로가 LF를 무시한 것(실재하는 장애 유형)이므로 review 축 `flf_adherence`에 기록하고 경로/모델을 재검토한다.
 7. **conform_from_source — 원본에서 컨폼한다(체이닝 금지).** 클립 끝 프레임을 다음 클립의 **소스 키프레임**으로 잇는 체이닝은 세대마다 드리프트한다(dub-of-a-dub). 연속 씬은 항상 **원본 키프레임/앵커 프레임에서 재출발**. 예외는 정확히 1세대 — 업스케일+색 정규화 후, decision_log 기록, 재체이닝 금지. 단, 끝 프레임을 **비권위 참조 인용**(reference_used에 추가 배선)으로 쓰는 것은 허용 — 권위는 항상 원본 앵커에 있다. 벤더 3사 공통 독트린("항상 원본 참조 팩에 재고정")과 일치.
+
+### Step 3.5 — 멀티숏 단일 실행·프롬프트 컨센서스 (커뮤니티/벤더 비공식 — 라벨 유지)
+
+- **멀티숏 단일 실행**: Seedance 계열은 한 생성 실행에 복수 숏(각기 앵글·길이·프롬프트)을 정의할 수 있고(multishot ≤6), 조명·캐릭터·환경이 숏 간 일관 유지된 공식 사례 존재(Freepik Studios 5연속 숏). 같은 씬의 짧은 연속 숏은 개별 클립 N회보다 멀티숏 1회를 먼저 검토 — 비용·일관성 동시 이득. [공식 블로그 사례 — 원문 재확인 필요]
+- **FLF 프롬프트 작법** [커뮤니티 컨센서스]: 시작/끝 이미지가 이미 보여주는 것을 재서술하지 말고 **모션·카메라·무드만** 기술. 첫 20~30단어에 주체+핵심 액션(모델이 이 구간으로 lock). 모션은 단일하고 매끄럽게. FLF는 "엔딩이 포인트"(리빌·변신·루프)일 때 최적.
+- **POV 유지 6요소** [커뮤니티 컨센서스, 다수 수렴]: ①카메라 정체성 명명(헬멧캠/체스트마운트/대시캠) ②프레임 내 신체 앵커(손·발) ③감각적 로케이션 디테일 ④비트 단위 액션 ⑤명명된 광원·팔레트 앵커 ⑥카메라 홀드 절("the camera holds its line"). 실패 모드: 신체 앵커 부재 = 무중력감, 모델 confidence 저하 = 3인칭 드리프트.
+- ⚠️ 채택 금지: 3rd party의 수치 가중치 시스템(character weight 0.9류)은 공식 API 파라미터로 미확인 — 개념(락 문구+변경 범위 명시)만 쓰고 수치는 문서화하지 않는다.
+- 재조사 대기: BytePlus ModelArk 공식 프롬프트 가이드 3건(Seedream 4.x·Seedance 2.0/1.0) — SPA라 미추출, 확보 시 이 절을 공식 근거로 승격.
 
 ### Step 4 — 비용 게이트 (하드)
 

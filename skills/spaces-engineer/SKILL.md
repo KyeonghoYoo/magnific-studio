@@ -10,6 +10,14 @@ description: |
 
 `spaces_edit`는 노드 JSON을 직접 쓰는 API가 아니라 **자연어 편집 쿼리**를 받는 헤드리스 API다. 따라서 이 스킬의 본질은 "구조화된 콘티 → 정확하고 검증 가능한 편집 쿼리 시퀀스"로의 번역이다.
 
+## 노드 카탈로그·포트 규칙 (공식 문서 — magnific.com/ai/docs/nodes-and-connections)
+
+- 노드 카테고리: **Source**(Upload/Media/Text) · **Generator**(Image/Video Generator, Voiceover, SFX, Music) · **Processing**(Upscaler, Camera Angles, 3D Perspective, Assistant, Video Audio Mix) · **Utility**(List, Sticky Notes, Group).
+- 포트는 타입 매칭 시에만 연결(이미지·텍스트·비디오·오디오 별도 타입). **출력은 다중 연결 가능, 단일-슬롯 입력(first/last-frame 등)은 새 연결이 기존을 대체**한다(reference 슬롯은 다중 허용 — 실증). 순환/셀프 연결 불가.
+- **List 노드**: 다중 아이템을 단일 입력에 순차 공급 — 반복 숏 배치 생성에 활용.
+- **3D Perspective 노드**: 단일 이미지에서 새 카메라 퍼스펙티브 생성(start/end frame 지정으로 전환 비디오) — FLF 페어의 카메라 사전 확정에 검토.
+- **Designer 노드**: Space 내 그래픽 에디터(플레이스홀더 자동 채움, 다중 페이지) — 자막/브랜드 오버레이·엔드카드 후보.
+
 ## 편집-검증 루프 (필수)
 
 1. `spaces_edit(spaceId, query)` — 한 번에 **하나의 논리적 변경**만 요청한다 (노드 몇 개 + 연결). 거대한 쿼리 하나로 그래프 전체를 만들려 하지 않는다.
@@ -19,6 +27,7 @@ description: |
    - **다중 노드 일괄 편집(find-replace 등)은 부분 반영될 수 있다** (실증: 참조 3개 중 1개만 끊기고 텍스트 교체 누락). 성공 응답이라도 대상 노드 전수를 `spaces_get_nodes`로 재확인하고, 누락분만 노드를 명시해 재시도한다.
    - **prompt 필드 오염 검증(필수)**: 편집 에이전트가 생성/복제한 image·video 노드는 nodeData의 `prompt` 키에 `"Create image-generator"` 같은 지시문 잔재가 남아 **실제 생성 프롬프트에 접두사로 새어 들어간다**(실증: 복제 브랜치 전 노드에서 발견, creations metadata의 prompt에 그대로 노출). 노드 생성 직후 `spaces_get_nodes`로 `prompt` 키를 확인하고, 텍스트 노드 배선 외의 잔재가 있으면 제거 쿼리를 발행한다.
    - **연결 삭제+추가를 한 쿼리에 섞으면 오배선 위험**(실증: prompt 교체 요청에서 last-frame이 삭제됨). 삭제와 추가는 별도 항목으로 명시하고, 완료 후 해당 노드의 연결 전체(prompt/first-frame/last-frame/reference)를 재검증한다.
+   - **편집 에이전트는 요청하지 않은 속성을 변형한다(실증 3건)**: ①참조 추가 요청에서 무관한 키프레임 5개의 aspectRatio 9:16→1:1 변형 + resolution 임의 추가, ②같은 편집에서 video 노드 withSoundEffects false→true 반전, ③video 노드 생성 시 프롬프트에 임의 잔재 주입("Camera position does not change" — 전진 트래블과 모순, "No music" — 부정 구문, "Cinematic quality" — 빈 토큰, 임의 SFX 지시). 모든 편집 후 **대상 외 노드 포함** model/mode·aspectRatio·resolution·duration·withSoundEffects·prompt를 전수 대조하고, video 프롬프트는 pre-flight lint(빈 토큰·부정 구문·카메라 지시 모순)를 다시 통과시킨다. 추가 실증: ④duration 변경 요청에서 video 노드 **모델을 Pro→Mini, 1080p→720p로 무단 강등**(강등 금지 원칙 위반 — model 키까지 대조 필수), ⑤"건드리지 마"라고 명시한 withSoundEffects를 편집마다 반복 반전. **video 노드를 편집한 모든 쿼리 후에는 model·resolution·withSoundEffects 3종을 기계적으로 재확인한다.**
 5. 검증을 통과한 노드 id를 `production_manifest.json`에 기록한다.
 
 검증 없이 다음 편집이나 실행으로 넘어가지 않는다.
@@ -27,7 +36,7 @@ description: |
 
 - 노드를 만들 때 프롬프트 전문을 쿼리 안에 그대로 담는다: 「image 노드를 만들어줘. 프롬프트: "..."」
 - 위치 지시는 anchor 기반으로: 「<노드>의 오른쪽에 image-to-video 노드를 추가하고 연결해줘」 (`anchorElementId` + `anchorDirection` 병용).
-- 캐릭터 참조가 필요한 노드에는 Library 자산/기존 creation을 참조로 연결한다. 기존 creation은 `spaces_add_creations`로 image 노드로 먼저 올린 뒤 와이어로 연결하는 편이 확실하다.
+- **Library 자산 배선이 1순위다(실증 확인)**: 편집 쿼리에 자산 이름과 numeric id를 함께 지시하면("Library 캐릭터 자산 X(id N)를 참조로 연결") 편집 에이전트가 `references` 타입 노드를 만들어 배선한다 — character 자산은 3뷰 전체가 정체성 계산에 기여한다. raw creation 와이어는 구도 연속성 앵커·일회성 참조에만(core 자산 계층 룰 2·3). 기존 creation을 쓸 때는 `spaces_add_creations`로 image 노드로 먼저 올린 뒤 와이어로 연결하는 편이 확실하다.
 - 모델 지정이 필요하면 쿼리에 명시하고, 검증 단계에서 실제 반영됐는지 확인한다. 반영 불가면 강등 금지 규칙에 따라 blocker 보고.
 
 ## 실행 2모드 — 과금 경로에 따라 역할을 나눈다
