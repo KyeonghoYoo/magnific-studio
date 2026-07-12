@@ -276,7 +276,7 @@
         "grade": {
           "type": "object",
           "properties": {
-            "show_lut": { "type": ["string", "null"], "description": "시퀀스 공용 LUT 경로(.cube) — 렌더러가 lut3d로 균일 적용(구현됨). 씬별 eq 트림은 현재 수동 ffmpeg(로드맵) — 수행 시 edit_plan notes에 기록." },
+            "show_lut": { "type": ["string", "null"], "description": "시퀀스 공용 LUT 경로(.cube) — 렌더러가 lut3d로 균일 적용(구현됨). 씬별 트림은 edit_plan `color.scene_trims[]`(shot_id 키 eq/colorbalance — 구현됨)로 기록·실행." },
             "correction_before_grade": { "type": "boolean", "default": true }
           }
         },

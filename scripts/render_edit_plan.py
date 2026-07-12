@@ -104,11 +104,28 @@ def build_pieces(plan, renders_dir, work, render):
     tl = plan["timeline"]
     enc = enc_args(render)
     nf = norm_filter(render)
+    trims = (plan.get("color") or {}).get("scene_trims") or []
+
+    def trim_filters(shot_id):
+        """shot_id에 매칭되는 scene_trims → eq/colorbalance 필터 문자열 목록(선언 순서 유지)."""
+        parts = []
+        for t_ in trims:
+            if shot_id and shot_id in (t_.get("shot_ids") or []):
+                eq = t_.get("eq") or {}
+                if eq:
+                    parts.append("eq=" + ":".join(f"{k}={eq[k]}" for k in eq))
+                cb = t_.get("colorbalance") or {}
+                if cb:
+                    parts.append("colorbalance=" + ":".join(f"{k}={cb[k]}" for k in cb))
+        return parts
+
     lens, srcs = [], []
     for i, e in enumerate(tl):
         src = find_source(e, renders_dir, plan)
         seg = os.path.join(work, f"t{i:02d}.mp4")
         vf = nf
+        for tf in trim_filters(e.get("shot_id")):
+            vf += "," + tf  # 정규화 직후·xfade 이전 — 블렌드 조각에도 자동 반영
         dur = round(e["out"] - e["in"], 3)
         if e.get("speed") and e["speed"] != 1.0:
             vf += f",setpts=PTS/{e['speed']}"
@@ -252,13 +269,20 @@ def main():
                 return q if os.path.exists(q) else p
             return p
 
-        use_mix = bool(cues or sfx_list or amb_list)
+        vo = audio_cfg.get("voiceover") or {}
+        vsrc = _resolve(vo.get("source", ""))
+        have_vo = bool(vsrc) and os.path.exists(vsrc)
+        if vo.get("source") and not have_vo:
+            sys.stderr.write(f"[render][경고] VO 소스 없음: {vo.get('source')} — 미믹스\n")
+
+        use_mix = bool(cues or sfx_list or amb_list or have_vo)
         have_audio = False
         if use_mix:
             if have_music and not cues:  # legacy 단일 베드 → M1 승격
                 cues = [{"cue_id": "M1", "source": msrc, "in": 0.0, "out": None, "source_in": m_in,
                          "gain_db": gain, "fade_in": fade_in, "fade_out": fade_out}]
             elems, idx = [], 1
+            bed_labels, sfx_labels = [], []  # bed(music+ambience)만 VO 사이드체인 덕킹 대상, SFX 제외
             for c in cues:
                 src = _resolve(c.get("source", ""))
                 if not src or not os.path.exists(src):
@@ -275,7 +299,7 @@ def main():
                       f"afade=t=in:st=0:d={fi},afade=t=out:st={max(0, seg - fo):.3f}:d={fo},"
                       f"volume={g}dB,adelay={int(t_in * 1000)}:all=1[m{idx}]")
                 cmd += ["-i", src]
-                elems.append((f"[m{idx}]", ch)); idx += 1
+                elems.append((f"[m{idx}]", ch)); bed_labels.append(f"[m{idx}]"); idx += 1
             for a_ in amb_list:
                 src = _resolve(a_.get("source", ""))
                 if not src or not os.path.exists(src):
@@ -291,7 +315,7 @@ def main():
                       f"afade=t=in:st=0:d={fi},afade=t=out:st={max(0, seg - fo):.3f}:d={fo},"
                       f"volume={g}dB,adelay={int(t_in * 1000)}:all=1[m{idx}]")
                 cmd += ["-i", src]
-                elems.append((f"[m{idx}]", ch)); idx += 1
+                elems.append((f"[m{idx}]", ch)); bed_labels.append(f"[m{idx}]"); idx += 1
             for s_ in sfx_list:
                 src = _resolve(s_.get("source", ""))
                 if not src or not os.path.exists(src):
@@ -301,11 +325,34 @@ def main():
                 g = float(s_.get("gain_db", 0))
                 ch = f"[{idx}:a]asetpts=PTS-STARTPTS,volume={g}dB,adelay={int(at * 1000)}:all=1[m{idx}]"
                 cmd += ["-i", src]
-                elems.append((f"[m{idx}]", ch)); idx += 1
+                elems.append((f"[m{idx}]", ch)); sfx_labels.append(f"[m{idx}]"); idx += 1
+            duck = have_vo and bool(vo.get("duck", True)) and bool(bed_labels)
+            if have_vo:
+                v_start = float(vo.get("start_sec", 0))
+                v_gain = float(vo.get("gain_db", 0))
+                tail = ",asplit=2[vok0][vomix]" if duck else "[vomix]"
+                ch = f"[{idx}:a]asetpts=PTS-STARTPTS,volume={v_gain}dB,adelay={int(v_start * 1000)}:all=1{tail}"
+                if duck:
+                    # 사이드체인 키를 타임라인 길이로 무음 패딩 — 안 하면 VO가 끝나는 지점에서
+                    # sidechaincompress가 bed 출력을 함께 끊어 음악이 조기 종료된다
+                    ch += f";[vok0]apad=whole_dur={total:.3f}[vok]"
+                cmd += ["-i", vsrc]
+                elems.append(("[vomix]", ch)); idx += 1
             if elems:
                 fc += ";" + ";".join(ch for _, ch in elems)
-                fc += (";" + "".join(lbl for lbl, _ in elems) +
-                       f"amix=inputs={len(elems)}:duration=longest:dropout_transition=0:normalize=0,"
+                if duck:
+                    # bed(음악+앰비언스) 서브믹스 → VO 키로 사이드체인 덕킹(하우스 레시피, post SKILL 3d) → SFX·VO와 최종 amix
+                    if len(bed_labels) > 1:
+                        fc += (";" + "".join(bed_labels) +
+                               f"amix=inputs={len(bed_labels)}:duration=longest:dropout_transition=0:normalize=0[bed]")
+                    else:
+                        fc += f";{bed_labels[0]}anull[bed]"
+                    fc += ";[bed][vok]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=300[bedduck]"
+                    final = ["[bedduck]"] + sfx_labels + ["[vomix]"]
+                else:
+                    final = [lbl for lbl, _ in elems]  # VO 부재 시 기존 그래프와 byte-identical (결정성 보존)
+                fc += (";" + "".join(final) +
+                       f"amix=inputs={len(final)}:duration=longest:dropout_transition=0:normalize=0,"
                        f"atrim=end={total:.3f}[a]")
                 maps += ["-map", "[a]", "-c:a", render.get("audio_codec", "aac"), "-b:a", render.get("audio_bitrate", "192k")]
                 have_audio = True

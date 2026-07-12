@@ -88,8 +88,15 @@ Canonical incompatibilities (each is a lint candidate, not a style opinion):
 
 **H2 floor (interior state).** Any shot whose JOB is a character's interior state = `medium_close_up` or tighter AND a described playable physical **verb**, never an adjective ("her hand flattens on the tabletop and stays there", not "she is grieving"). Recipes that live wide — isolation, awe, wonder, grief's tableau — must PAIR the wide with an MCU-or-tighter `function: reaction`: **the wide carries the situation, the tight carries the state.** Isolation is the single exception where the frame *is* the emotion (negative space) — the pairing still applies to the reaction that follows.
 
-### R2 — Escalation = amplitude increase, not sign alternation.
-**"Kind" is formally the scene's value-shift DIRECTION: `+→−` or `−→+`** (story-structure.md: `value_shift{from,to}` + the polarity-progression row). Requirement: `scene(n).kind ≠ scene(n+1).kind` **AND** `|delta(n+1)| > |delta(n)|` through the midpoint. Two consecutive scenes on the same recipe at the same amplitude = **flatline** — the exact defect the value-shift rule exists to catch. Amplitude is raised by moving departments together:
+### R2 — Escalation = amplitude increase, not sign alternation (M1–M4).
+AUTHORED (per scene, a narrative contract in the scene brief — not a schema field): `value_shift: { value: "<named axis>", from: <signed>, to: <signed> }` on McKee's four-position anchor — positive(+1) · contrary(−1) · contradictory(−2) · negation_of_negation(−3). The axis is ASYMMETRIC (one positive position, three negative — McKee has no "positive of the positive").
+DERIVED, never authored: **`kind = sign(to − from)` → rise|fall** · **`charge = sign(to)` → +|−** (the thing McKee actually charts is end-charge, not shift direction). Anchor subtraction is used ONLY for its SIGN — the 4-position scale is ORDINAL (square-of-opposition logic relations), not metric; `|to − from|` is NOT an escalation measure (M2).
+- **M1 — every scene turns:** `from ≠ to`. `from == to` = non-event scene (already enforced). ONE licensed exception: a final-position **RESOLUTION** (McKee's five-part form: Inciting Incident · Progressive Complications · Crisis · Climax · Resolution) holds the climax's value — it does not turn because the value has ALREADY turned. One per piece, never mid-run; it is a post-climax UNIT (a final image, a CTA card), not a dramatic scene.
+- **M2 — progressive complications:** amplitude rises across a run toward the climax — measured on the DEPARTMENT axes (table below), NEVER on anchor arithmetic. Subtracting ordinal labels fabricates a metric that does not exist: McKee's own canonical progression (+1→−1→−2→−3) has anchor deltas 2,1,1 — a valid escalation an anchor-measured rise would flag. NotN is "not just quantitatively but QUALITATIVELY worse" — incommensurable steps.
+- **M3 — no repetition of FEELING (Law of Diminishing Returns):** FLAG ⟺ `kind(n)==kind(n+1)` AND department amplitude does not rise. A same-kind run with RISING department amplitude is legal ANYWHERE — McKee's own canonical progression (Thematic Square: positive→contrary→contradictory→negation-of-negation) is one long fall. Alternation is the default TEXTURE, not a law; the defect is repeated FEELING at flat amplitude (McKee: "the greater danger is repetition of feeling"). Anchor deltas may be logged as a corroborating hint but never gate.
+- **M4 — the ONE hard sign rule (crisis→climax polarity):** `charge(climax-scene end) ≠ charge(previous-scene end)`. An up-ending climax requires the scene before it to END down — the house beat map already encodes this (all_is_lost 68% → break_into_three 77% → finale). Constrains ONE boundary and END-CHARGE, not direction.
+
+Two consecutive scenes on the same recipe at the same amplitude = **flatline** — M3's exact target. Amplitude is raised by moving departments together:
 
 | Axis | Escalation direction |
 |---|---|
@@ -97,7 +104,7 @@ Canonical incompatibilities (each is a lint candidate, not a style opinion):
 | lighting ratio | deepens (`mild_2_1`→`standard_4_1`→`low_key_8_1`→`extreme_16_1`) |
 | lens_mm | departs from the ~50mm normal in either direction (compress or distort) |
 | ASL | shortens — **except dread, which escalates by LENGTHENING.** The inversion is the point |
-| saturation | departs baseline → most desaturated at the low point → returns **above** baseline at resolution |
+| saturation | departs baseline → most desaturated at the low point → returns **above** baseline at resolution. Subjective-register scenes (memory/dream) carry the REGISTER's palette, not the arc position — the gap between the remembered warmth and the present cold IS the beat (Example C s2) |
 | music | density rises. The one available move above maximum density is **silence before the hit** — the highest-amplitude gesture in the kit |
 
 ### R3 — One dominant recipe per scene. Recipe changes happen at scene boundaries.
@@ -120,10 +127,10 @@ This is a **schema consequence**, not a preference: `scenes[].lighting` is injec
 
 ## 3. WORKED EXAMPLES
 
-### A. Thriller cold open — 30s, 3 scenes. Demonstrates R3 (shock as a SHOT, not a scene).
+### A. Thriller cold open — 30s, 3 scenes. Demonstrates R3 (shock as a SHOT, not a scene) + a same-kind FALLING run on the **Safety** axis that reproduces McKee's canonical progression (+1→−1→−2→−3) — amplitude carried by the department axes (M2/M3), the second-act shape (no climax boundary, M4 not in play).
 ```jsonc
 // Escalation: standard_4_1 → low_key_8_1 → mild_2_1(ambient/unreal).  ASL: long → longest → numb.
-s1  recipe: suspense_audience_knows          // end_polarity: unease (small delta)
+s1  recipe: suspense_audience_knows          // value_shift: positive(+1) → contrary(−1) → kind: fall · end − · dept baseline: ratio 4:1, long ASL, dutch 0
     lighting: { time_of_day: interior_night, key_direction: front_left, key_quality: soft,
                 ratio: standard_4_1, contrast_proxy: "clear shadow side, visible but detailed shadow",
                 color_temp_k: 3200, pattern: loop, exposure_bias: neutral,
@@ -136,7 +143,7 @@ s1  recipe: suspense_audience_knows          // end_polarity: unease (small delt
     audio: { music_cues: [{ cue_id: M1, diegesis: score, why: "slow riser under the suspense hold" }],
              beat_snap: { mode: offset, offset_ms: 90 } }
 
-s2  recipe: mounting_dread  →  the SHOCK is sh5, a shot inside this scene    // end_polarity: fear (delta ↑↑)
+s2  recipe: mounting_dread  →  the SHOCK is sh5, a shot inside this scene    // value_shift: contrary(−1) → contradictory(−2) → kind: fall · end − · same-kind run, M3-legal: dept amplitude ESCALATES (ratio →8:1, ASL longest-then-collapses at the shock, dutch 0→12, music density→dropout→shock)
     transition_in: { type: cut }                       // recipe change = scene boundary
     lighting: { time_of_day: interior_night, key_direction: top, key_quality: hard,
                 ratio: low_key_8_1, contrast_proxy: "shadow side barely visible, deep shadow, only a sliver of detail",
@@ -152,7 +159,7 @@ s2  recipe: mounting_dread  →  the SHOCK is sh5, a shot inside this scene    /
           notes: "3-rung ladder jump — deliberate; the jump IS the beat. Lighting INHERITED, unchanged." }
     audio: { sfx: [{ id: X1, at_sec: 18.4, duck_others_ms: 400 }] }   // dropout → transient → silence
 
-s3  recipe: interiority_dissociation                                    // end_polarity: numb (delta ↑↑↑)
+s3  recipe: interiority_dissociation                                    // value_shift: contradictory(−2) → negation_of_negation(−3) → kind: fall · end − · THE NotN TURN: "no longer feeling" = annihilation dressed as mercy — the run's deepest step, qualitatively worse (dept: numb long ASL, unreal sourceless ambient). NOT a resolution — it turns.
     transition_in: { type: cut }
     lighting: { key_direction: ambient, key_quality: soft, ratio: mild_2_1,
                 contrast_proxy: "gentle modeling, shadow side one stop under, soft shadow detail",
@@ -206,9 +213,11 @@ s3  recipe: product_hero_desire  →  CTA is sh6, a shot inside this scene
     end: { end_fade_ms: 600 }
 ```
 
-### C. Character arc — grief → memory → liberation. Demonstrates R2 (saturation arc) + transition semantics.
+### C. Character arc — grief → memory → liberation. Demonstrates R2/M1–M4 (value tagging on the **Aliveness** axis: can she let go?) + the saturation subjective-register note + transition semantics.
 ```jsonc
-s1  recipe: grief                                       // color script: MOST desaturated, coolest, flattest
+s1  recipe: grief                                       // value_shift: contrary(−1) → negation_of_negation(−3)
+                                                        //   → kind: fall · end charge: − · |delta| 2 — numbness sold as endurance = NotN
+                                                        // color script: MOST desaturated, coolest, flattest
     lighting: { time_of_day: interior_day, key_direction: side_left, key_quality: soft, ratio: standard_4_1,
                 contrast_proxy: "clear shadow side, visible but detailed shadow",
                 color_temp_k: 5600, pattern: loop, exposure_bias: dark, motivation: "the one window" }
@@ -218,7 +227,12 @@ s1  recipe: grief                                       // color script: MOST de
           movement: { base: static, support: locked },
           notes: "H2: the interior-state beat. Playable verb — 'one hand flattens on the tabletop and stays there'." }
 
-s2  recipe: nostalgia_memory                            // saturation lifts ABOVE baseline; warm
+s2  recipe: nostalgia_memory                            // value_shift: negation_of_negation(−3) → contradictory(−2)
+                                                        //   → kind: rise · end charge: − · |delta| 1 (small rise — the memory strips the
+                                                        //   self-deception: from "not letting go IS love" to "I cannot let go". Out of the
+                                                        //   lie, still trapped = the CRISIS; M4 needs this down-ending for s3 to swing) —
+                                                        //   warmth = the MEMORY's register, not her present (R2 saturation note)
+                                                        // saturation lifts ABOVE baseline; warm
     transition_in: { type: dissolve, duration_ms: 3200 }     // ellipsis tier — time passed, substantially
     lighting: { time_of_day: golden_hour, key_direction: back_right, key_quality: soft, ratio: mild_2_1,
                 contrast_proxy: "gentle modeling, shadow side one stop under, soft shadow detail",
@@ -230,7 +244,11 @@ s2  recipe: nostalgia_memory                            // saturation lifts ABOV
                             why: "the theme crosses the memory boundary", derived_from: M1,
                             transform: { pitch_semitones: 0, tempo_ratio: 0.85 } }] }  // leitmotif: SAME stem
 
-s3  recipe: triumph_liberation                          // saturation returns above baseline; warms; rolloff softens
+s3  recipe: triumph_liberation                          // value_shift: contradictory(−2) → positive(+1)
+                                                        //   → kind: rise · end charge: + · same-kind run with s2 — LEGAL under M3: dept
+                                                        //   amplitude rises (saturation returns above baseline, crane up, open sky vs s2's
+                                                        //   closed interior); anchor swing 1→3 is a corroborating HINT, not the gate; M4 ✓ (s2 ends −)
+                                                        // saturation returns above baseline; warms; rolloff softens
     transition_in: { type: dissolve, duration_ms: 1200 }
     lighting: { time_of_day: day, key_direction: back_left, key_quality: hard, ratio: mild_2_1,
                 contrast_proxy: "gentle modeling, shadow side one stop under, soft shadow detail",

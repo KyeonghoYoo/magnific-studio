@@ -80,12 +80,8 @@ UI 화면 픽셀정확 CTA 마감도 `freeze_tail`로 처리.
 
 렌더러(`render_edit_plan.py`)가 ffmpeg xfade로 번역하며, **ffmpeg의 노이즈 디더 `dissolve`는 어떤 경로로도 노출되지 않는다**(생성 클립에서 지지직거림 — 실전 지적). v1 이름(fade/fadeblack/…)은 경고 후 자동 매핑. 스티치드 원테이크 이음은 `hidden_join`(whip/object_wipe/dark_frame)으로 주석 — 후반·재그레이드가 솔기를 알아야 한다. 머리/꼬리 페이드는 `render.opening_fade_ms/end_fade_ms`(기본 500/1000). 오프셋 산식(offset_k = Σd − k·t)은 렌더러의 경계 블렌드 방식과 수학적으로 동치 — 수동 ffmpeg를 쓸 때만 필요.
 
-**3d. 오디오.** 생성 클립 자체 오디오는 기본 제거(`clip_audio: strip` — 컷 간 앰비언스 불일치 방지). 음악 베드를 깔고, VO가 있으면 음악에 **사이드체인 덕킹**:
-```
-[music][vo]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=300[duck];
-[duck][vo]amix=inputs=2:duration=longest
-```
-**SFX·앰비언스는 배송 게이트다(무게감 = AI 티 방어).** 화면에 **충돌·임팩트·주인공 보행**이 보이는데 music-only로 납품하면 QC FAIL — 발소리·하드 이펙트 없는 움직임은 일반 시청자에게도 '무게 없음'으로 읽히는 가장 큰 AI 티다. 최소 바닥: **location당 앰비언스 베드 1개**(`audio.ambience[]` — populated/exterior 씬의 완전 무음은 믹스 오류로 읽힘) + **히어로 보행 숏의 발소리** + **가시 임팩트마다 하드 이펙트 1개**(`audio.sfx[]`, 컷/임팩트 프레임에 `at_sec` 정렬). 소싱은 `stock_search`(오디오) — 생성 경로가 없다. **storyboard `shots[].sound[]` 큐는 반드시 edit_plan에 목적지를 갖는다**(비면 QC FAIL — 무단 유실 금지). 렌더러가 music_cues+ambience+sfx를 amix로 믹스한다(VO 덕킹은 기존 수동 레시피 유지).
+**3d. 오디오.** 생성 클립 자체 오디오는 기본 제거(`clip_audio: strip` — 컷 간 앰비언스 불일치 방지). 음악 베드를 깔고, VO가 있으면 **렌더러가 자동으로** bed(음악+앰비언스)에 사이드체인 덕킹을 적용한다(`voiceover.duck: true` 기본, SFX 제외, 하우스 레시피 `threshold=0.03:ratio=8:attack=20:release=300`). VO 배치는 `voiceover.start_sec`(마스터 타임라인 초) — 씬 컷보다 이르게 두면 프리랩(J컷)이 된다. 수동 ffmpeg 카드는 더 이상 필요 없다.
+**SFX·앰비언스는 배송 게이트다(무게감 = AI 티 방어).** 화면에 **충돌·임팩트·주인공 보행**이 보이는데 music-only로 납품하면 QC FAIL — 발소리·하드 이펙트 없는 움직임은 일반 시청자에게도 '무게 없음'으로 읽히는 가장 큰 AI 티다. 최소 바닥: **location당 앰비언스 베드 1개**(`audio.ambience[]` — populated/exterior 씬의 완전 무음은 믹스 오류로 읽힘) + **히어로 보행 숏의 발소리** + **가시 임팩트마다 하드 이펙트 1개**(`audio.sfx[]`, 컷/임팩트 프레임에 `at_sec` 정렬). 소싱은 `stock_search`(오디오) — 생성 경로가 없다. **storyboard `shots[].sound[]` 큐는 반드시 edit_plan에 목적지를 갖는다**(비면 QC FAIL — 무단 유실 금지). 렌더러가 music_cues+ambience+sfx+voiceover를 amix로 믹스한다 — VO는 `start_sec`으로 배치되고 bed에 사이드체인 덕킹이 자동 적용된다(SFX 제외).
 
 효과음은 타이밍 맞춰 개별로만 얹는다. **최종 라우드니스는 2-pass loudnorm**(measure→apply, `linear=true`): I=-14, TP=-1.5, LRA=11. 단일 패스 loudnorm은 언더슈트하기 쉬우니(실전: -12.5로 나옴), 렌더 후 `ebur128`로 통합값을 **재측정하고 `volume=(-14 − 측정값)dB`로 보정**한다(비디오는 copy, 오디오만 재인코딩 → 빠름). **다이내믹스 QA**: 같은 ebur128 패스의 **LRA**가 4LU 미만이면(잠정치 — 실측 2편으로 캘리브레이션 예정) cinematic_short/longform/brand에서 warn — 스펙 통과(-14)와 좋은 믹스는 다르다(벽돌 믹스 탐지). shorts_reels는 적용 제외.
 

@@ -38,6 +38,17 @@ v0.2.0은 실제 브랜드 프로모 1편(15숏/60초)을 이 파이프라인으
 - **aspect_variants/branches**: 비율 파생을 스키마 1급 개념으로 — 원본 라인 보존 + 비율별 숏 문법 이원화.
 - 편집 문법 부록(Murch 가중·30°·커버리지·가치전환), FLF 심도/샷사이즈 검증, last-frame 체이닝 금지, 히어로 숏 차등 N-후보, 프롬프트 오염 검증, user-run 실행 카드.
 
+## v1.2.0 — 후반 렌더러 확장 + 렉시콘 후속 검증
+
+v1.1.0 검증 게이트(99.3%)가 적립한 백로그 7건 완주. 렌더러는 합성 자산 실렌더 스모크(ffmpeg 8.1)로 검증.
+
+- **VO 저작화**: `audio.voiceover.start_sec`(타임라인 배치 — 컷보다 이르면 J컷 프리랩) + `duck`(bed에 사이드체인 덕킹 자동 적용, SFX 제외) — 수동 ffmpeg 카드 폐지.
+- **씬별 트림**: `color.scene_trims[]`(shot_id 키 eq/colorbalance) — 컬러 스크립트 비트를 클립 단위로 교정. show LUT은 여전히 균일·보수적.
+- **TTS 캘리브레이션**: `scripts/calibrate_tts_rate.py` — 보이스별 실측 syl/s로 VO 예산 게이트 정밀화(KR 예산은 낭독 속도 기준으로 재산정: :30≈95–120음절).
+- **캡션 문자 예산표**: Netflix TTSG 1차 소스(EN 42CPL/20CPS · KR 16CPL/12CPS) — VO 예산과 별도 계약.
+- **R2→M1–M4**: 씬 값 전환 규칙을 McKee 원전 대조로 재형식화 — 동일-방향 점층 런 합법화(Thematic Square), crisis→climax 극성 하드 규칙 신설.
+- model-matrix 3행 1차 소스 확정(Seedance FLF true-documented 등).
+
 ## v1.1.0 — filmcraft: 영화 기법 정본 사전 + 하네스 통합
 
 "매번 추론"을 "정본 사전 참조"로 바꿨다. 12개 부서 리서치(웹 검증) → **3관점 공격적 대심 토론**(학술 순수주의 vs 현장 실무 vs AI 파이프라인 — 37개 안건 + 신규 충돌 19건) → 수석 중재 판정 → 집필 → 정량 교차검증의 파이프라인으로 만들어졌다. 과정 기록은 `docs/RESEARCH-CRAFT.md`.

@@ -60,13 +60,13 @@
 
 ### 후속 백로그 (P6 검증이 적립 — 판정과 무관한 로드맵)
 
-1. `audio.voiceover.start_sec` 필드 + 렌더러 adelay 경로 — VO 프리랩/포스트랩 완전 저작화(현재: TTS 렌더 무음 패딩으로 대체, sound-music D7).
-2. 보이스별 syl/s TTS 캘리브레이션(문장 1개 렌더 → ffprobe 길이 ÷ 음절수) — KR VO 예산 [PROVISIONAL] 해제.
-3. per-scene `colorbalance`/`curves` trim 렌더러 경로 — 현재 declared manual pass(color-grading 스파인).
-4. 캡션 per-duration 문자 예산표 — 현재 open item(sound-music §4), VO 예산 유용 금지만 명시된 상태.
-5. emotion-recipes Example C에 씬별 `kind` 태그 — 극성 설계 재유도 필요(잘못 달면 R2 위반을 예제에 심음).
-6. model-matrix Seedream/Wan/Seedance 행 1차 소스 재확인 — CONFLICT/UNVERIFIED 마커 해제 조건.
-7. ffmpeg(≥4.4) 환경에서 렌더러 v2 실렌더 스모크 1회 — 현재 드라이런(필터그래프 캡처) 검증까지 완료.
+1. ~~`audio.voiceover.start_sec` 필드 + 렌더러 adelay 경로~~ **완료(v1.2.0)** — `start_sec`+`duck` 스키마 추가, 렌더러가 VO 믹스인 + bed 사이드체인 덕킹(SFX 제외). 사이드체인 키 apad 패딩으로 조기 종료 버그까지 해소.
+2. 보이스별 syl/s TTS 캘리브레이션 — **스크립트 배포(v1.2.0)**: `scripts/calibrate_tts_rate.py` (ffprobe 실측 ÷ 음절수 → 보이스별 예산 자동 산출). 실제 보이스 실측 후 [PROVISIONAL] 해제.
+3. ~~per-scene trim 렌더러 경로~~ **완료(v1.2.0)** — `color.scene_trims[]` (shot_id 키 eq/colorbalance, 정규화 직후·블렌드 이전 적용).
+4. ~~캡션 per-duration 문자 예산표~~ **완료(v1.2.0)** — Netflix TTSG 1차 소스(EN 42CPL/20CPS · KR 16CPL/12CPS·0.5-char 규칙·SDH +2), per-duration 도출표, 방송 폴백, 숏폼 PROVISIONAL, KCC 미확보 정직 표기. sound-music §4.
+5. ~~Example C `kind` 태깅~~ **완료(v1.2.0)** — 선행 작업으로 R2 자체를 McKee 원전 대조 재설계(M1–M4: kind/charge 파생 강등, 4위치 값 축, 동일-kind 상승 런 합법화, crisis→climax 극성 하드 규칙). Aliveness 축으로 s1 fall/− · s2 rise/−(crisis) · s3 rise/+ 태깅.
+6. ~~model-matrix 3행 재확인~~ **완료(v1.2.0)** — Seedream correct-to(1–6×1–6 batch, ≤10 refs, Edit-only ≤15), Wan 결함 클레임 삭제(의도적 워크플로였음), Seedance 5개 하위판정(camerafixed 1.0 한정 · @Image N 2.0+ · FLF true-documented · negative_prompt false · durations any-int). 마커 3건 전부 해제.
+7. ~~ffmpeg 실렌더 스모크~~ **완료** — ffmpeg 8.1.2 설치, 합성 자산 end-to-end(디졸브+iris_close+scene_trims+show_lut+음악/앰비언스/SFX/VO 덕킹+loudnorm 2-pass) 8.54s/계획 8.50s, 오디오 전장 유지, QC 프레임 4장.
 
 ## 5. 출처 계층
 

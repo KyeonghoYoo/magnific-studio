@@ -25,8 +25,8 @@
 | Kling (3.0/Omni) | `camera_control` object + text | 1 (soft) | true (`<<<name>>>`; O1 legacy `@Element1`) | true — community sources garble the pan/tilt axis mapping, verify before shipping | true (Frame Mode, official) |
 | Hailuo/MiniMax (02/2.3) | `[Move]` brackets, inline & combinable | **≤3 — CAPABILITY EXCEPTION**, official cap | false (brackets are camera commands, not identity tags) | false | partial — End-Frame-Only mode (destination-first, not FF+LF) |
 | Luma (Ray3/3.14) | composable Camera Motion Concepts (15 motion + 9 angle primitives) | **multiple — CAPABILITY EXCEPTION**, officially unbounded | false | false (named concept tokens) | undocumented — no Dutch-angle primitive (coverage gap) |
-| Wan (2.1/2.2 open) | text (base); LoRA/Fun-Control checkpoint for reproducible paths | 1 | false | false (checkpoint swap is the de facto param channel) | community-implemented — serving-path dependent (a wrapper reportedly drops the last frame in some pipelines — UNVERIFIED against a primary source; test your serving path) |
-| Seedance (1.0 Pro / 2.0 / 2.5) | text + `cameraFixed` bool gate | 1 default | true (`@Image N`) | false (bool gate, not a full object) | undocumented [row unverified against ByteDance primary docs — re-check before relying] |
+| Wan (2.1/2.2 open) | text (base); LoRA/Fun-Control checkpoint for reproducible paths | 1 | false | false (checkpoint swap is the de facto param channel) | community-implemented — serving-path dependent; FLF workflows function. Some chaining workflows DELIBERATELY drop the saved last frame to avoid duplicate frames on concatenation (a documented user choice, not a defect) — no evidence found of an unintended last-frame-loss bug [kijai/WanVideoWrapper issues + endframe workflow docs] |
+| Seedance (1.0 Pro / 2.0 / 2.5) | text + `camerafixed` bool gate (all-lowercase; 1.0 Lite/Pro only — absent from 2.0's documented schema) | 1 default | true, 2.0+ only (Omni-reference `@Image N` + `reference_images[]`: 2.0 ≤9 images+3 videos+3 audio · 2.5 ≤50 multimodal refs · 1.0 Pro none — single `image_url`+`last_image_url` schema) | false (bool gate, not a full object) | **true — documented**: 1.0 Pro `image_url`+`last_image_url` · 2.0 `first_frame_url`+`last_frame_url` · 2.5 inferred from trend (not independently confirmed) [2nd-party API docs (aimlapi/Segmind) — ByteDance first-party pages are JS-shell, unscrapable] |
 | Sora (2 / 2 Pro) | text only | 1 strict | false (Cameo = consent-gated identity token, max 2/gen — not addressing syntax) | false | undocumented |
 
 `flf_support`: cross-family adherence ranking is an ACKNOWLEDGED RESEARCH GAP (rulings L12) — don't rank from this column. Measure per-clip via SSIM/pHash (`quality-reviewer` `flf_adherence` axis, rulings H6).
@@ -41,7 +41,7 @@
 | Hailuo/MiniMax (02/2.3) | undocumented — community claim uncorroborated | 6 (any res) / 10 (≤768p) | ≤1080p | undocumented | GA |
 | Luma (Ray3/3.14) | API yes; docs discourage | 5–10 (extend ~30) | 1080p, 4K upscale | undocumented | GA |
 | Wan (2.1/2.2 open) | true (API/ComfyUI) | ~5 | 480/720p | undocumented | open-weight (2.5/2.6 closed successors exist) |
-| Seedance (1.0 Pro / 2.0 / 2.5) | version-dependent (2.0+ works; 1.0 unclear) | 2–12 (1.0); 15 (2.0); 30 (2.5) | ≤1080p, 4K@2.5 | undocumented | GA |
+| Seedance (1.0 Pro / 2.0 / 2.5) | false — no dedicated field in either documented schema; "negative prompting" = a prompt-text closing convention ("- No music, no logo, no text") [absence-of-evidence from two accuracy-incentivized resellers — moderate confidence] | 2–12 any-int (1.0); 4–15 any-int (2.0); ≤30 (2.5) | 480/720/1080p (1.0/2.0 — one reseller exposes an uncorroborated 4k option on 2.0); native 4K 10-bit @2.5 | undocumented | GA |
 | Sora (2 / 2 Pro) | not documented | 4–20 discrete | ≤1920×1080 | true (trailing speaker-labeled block; "a handful of sentences" cap on 5–10s clips) | **API sunsets 2026-09-24** — do not anchor new work on Sora |
 
 `native_audio`: undocumented = treat as false (route through the audio pipeline, `prompting.md` §8) until verified per campaign.
@@ -51,7 +51,7 @@
 | Family (flagship) | negative_prompt | named_tag_syntax | text_render_ok | Resolution | Status |
 |---|---|---|---|---|---|
 | Flux (2) | false, explicit | false | false (quote+font is a stills-only hack, no video path) | 4MP native | GA |
-| Seedream (4.5/5.0) | legacy field, not promoted | false | undocumented | ≤4096² | GA — batch sequence-mode ≤9 mutually-consistent images/call, ~12 fused multi-ref inputs [CONFLICT: ByteDance-side material cites up to 15 batch / ~10 reference — figures may measure different modes; verify against primary docs before relying] |
+| Seedream (4.5/5.0) | legacy field, not promoted | false | undocumented | ≤4096² | GA — batch: `num_images` 1–6 × optional `max_images` 1–6 multiplier (multi-image mode); reference `image_urls` ≤10, excess SILENTLY TRUNCATED to last 10; combined cap (refs+outputs) ≤15 on the Edit endpoint only — Text-to-Image endpoint uncapped [fal.ai live v4.5 schema; the earlier "≤9" figure matches no Seedream doc — likely cross-contamination from Seedance 2.0's 9-reference cap] |
 | nano-banana (Gemini 3.1 Flash / 3 Pro Image) | false, architectural — positive reframing is doctrine | true — recommended even for multi-character stills | true (quote+font technique) | ≤4K, 14 ratios | GA |
 | Imagen (4) | undocumented | false | undocumented | 1K/2K | **sunsets 2026-08-17** — migrate to nano-banana |
 

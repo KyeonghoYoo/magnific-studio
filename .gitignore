@@ -2,7 +2,7 @@
 *.DS_Store
 
 # oh-my-claudecode operational artifacts (runtime state, logs, handoffs)
-.omc/*
+**/.omc/*
 # Exception: project-scoped skills are meant to be committed
 !.omc/skills/
 
@@ -10,3 +10,4 @@
 desktop/_stage/
 desktop/dist/
 desktop/.build-manifest.json
+__pycache__/

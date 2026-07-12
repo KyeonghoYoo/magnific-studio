@@ -327,6 +327,110 @@
             "null"
           ],
           "description": ".cube 파일 경로(renders_dir 상대 또는 절대). null이면 미적용."
+        },
+        "scene_trims": {
+          "type": "array",
+          "description": "씬/숏별 색 트림(선택). 보정→매칭→show LUT 뒤의 씬 단위 편차 — color_script 비트를 클립 단위로 강제한다. shot_id 매칭으로 클립별 적용(정규화 직후, xfade 블렌드 이전). color-grading.md 스파인.",
+          "items": {
+            "type": "object",
+            "required": [
+              "shot_ids"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "shot_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "적용 대상 timeline[].shot_id 목록"
+              },
+              "eq": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "ffmpeg eq 파라미터 — 단일 숫자만(표현식 문법상 하이픈 범위는 뺄셈으로 평가됨)",
+                "properties": {
+                  "contrast": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 1000
+                  },
+                  "saturation": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 3
+                  },
+                  "gamma": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 10
+                  },
+                  "brightness": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  }
+                }
+              },
+              "colorbalance": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "ffmpeg colorbalance 파라미터(-1..1) — rs/gs/bs(shadows), rm/gm/bm(midtones), rh/gh/bh(highlights)",
+                "properties": {
+                  "rs": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "gs": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "bs": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "rm": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "gm": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "bm": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "rh": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "gh": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "bh": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  }
+                }
+              },
+              "why": {
+                "type": "string",
+                "description": "트림 근거 한 줄(color_script 비트 인용)"
+              }
+            }
+          }
         }
       }
     },
@@ -577,6 +681,17 @@
               ],
               "default": "narration",
               "description": "VO 성격 태그. narration=연결 조직(기본) · internal_monologue=내적 독백(관객+해당 인물만 들림 — 비다이제틱 덕킹 + close/dry 원근 처리) · character_sync=인물 발화 동기(립싱크/퍼포먼스). sound-music.md D8."
+            },
+            "start_sec": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0,
+              "description": "VO 시작 시각(마스터 타임라인 초). 프리랩(J컷)은 씬 컷 시각보다 이르게 배치 — sound-music.md D7. 렌더러가 adelay로 배치한다."
+            },
+            "duck": {
+              "type": "boolean",
+              "default": true,
+              "description": "true면 렌더러가 음악+앰비언스 베드에 사이드체인 덕킹 적용(threshold=0.03:ratio=8:attack=20:release=300 — 하우스 레시피). SFX는 덕킹 제외."
             },
             "script": {
               "type": "string",
