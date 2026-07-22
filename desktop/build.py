@@ -39,6 +39,8 @@ DESKTOP_DESCRIPTIONS = {
     "spaces-engineer": "Magnific Spaces 그래프 구축·검증·실행 전문. Use when: spaces_create/edit/run 호출 전, 콘티를 Space 노드 그래프로 번역할 때, Space 실행 실패로 부분 재실행이 필요할 때.",
     "quality-reviewer": "생성 산출물 자동 자기검수(QA) 교차 스킬. Use when: 키프레임/클립/최종 렌더를 승인 게이트에 올리기 직전, 증거 기반 승인이 필요할 때. 산출물: 축별 review(점수+verdict+issues).",
     "post-production-director": "후반 편집 디렉터 — edit_plan.json 계획 수립. Use when: 컷/트랜지션/음악/자막/파생본을 설계할 때. 주의: 실제 ffmpeg 렌더는 Claude Code 전용, Desktop은 계획까지만.",
+    "filmcraft": "영화 제작 전 부서 기법 정본 사전 — 실무·정전 이론·AI 프롬프트 번역. Use when: 각 스테이지 시작 시 해당 레퍼런스 확인, 카메라·조명·편집·사운드 어휘를 아티팩트에 쓸 때, 생성 프롬프트 작성/린트. 참조 전용(산출물 없음).",
+    "format-director": "포맷/카테고리 플레이북 — 영화·롱폼, 광고(15/30/60s), 숏츠·릴스별 구조·리듬·납품 규격. Use when: 기획에서 format_profile 결정, 콘티 비트 배치·ASL·훅 설계, 납품 규격(세이프존·라우드니스) 분기.",
     # New Desktop-only entrypoint skill (source in desktop/skills-src/)
     "magnific-studio-quickstart": None,  # keep its own frontmatter as-authored
 }
